@@ -1,0 +1,18 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "PlatformIO Build NexaPanelMini",
+			"type": "shell",
+			"command": "C:\\Users\\piotrek\\.platformio\\penv\\Scripts\\pio.exe",
+			"args": [
+				"run"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build"
+		}
+	]
+}
