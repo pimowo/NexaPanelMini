@@ -40,7 +40,7 @@ void printStartupDiagnostics() {
     Serial.printf("Reset: %s\n", ESP.getResetReason().c_str());
     Serial.printf("SPI: SCK=D5 MISO=D6 MOSI=D7 TFT_CS=D8 TOUCH_CS=D2\n");
     Serial.println("BOOT WARNING: D8/GPIO15 must stay LOW; D3/GPIO0 and D4/GPIO2 must stay HIGH during reset");
-    Serial.println("BACKLIGHT: D3 not driven until PCB BL MOD is confirmed");
+    Serial.println("BACKLIGHT: LCD BL is permanently powered; no ESP8266 control line");
 }
 
 void printHealthDiagnostics() {

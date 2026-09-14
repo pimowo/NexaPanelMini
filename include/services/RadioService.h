@@ -30,6 +30,7 @@ private:
     bool sendCommand(const char* command, bool clearMedia);
     void setOffline(bool clearMedia);
     void scheduleRetry();
+    void updateOfflineErrorUi();
 
     AppState* state_ = nullptr;
     WebSocketsClient socket_;
@@ -40,6 +41,8 @@ private:
     uint8_t backoffStep_ = 0;
     bool socketStarted_ = false;
     bool manualDisconnect_ = false;
+    bool offlineTimerArmed_ = false;
+    uint32_t offlineStartedMs_ = 0;
 #ifdef YORADIO_RX_DIAGNOSTICS
     uint8_t diagnosticFrameCount_ = 0;
 #endif

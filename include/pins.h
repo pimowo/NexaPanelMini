@@ -30,12 +30,10 @@ constexpr uint8_t PIN_TOUCH_IRQ = D0;
 constexpr uint8_t PIN_SD_CS = D4;
 
 // ============================================================
-// Backlight (nieużywany na tym etapie)
+// Backlight
 // ============================================================
-// D3 = GPIO0 to pin bootujący ESP8266.
-// Podświetlenie BL nie jest jeszcze potwierdzone sprzętowo na PCB.
-// Firmware celowo nie steruje tym pinem (brak pinMode/digitalWrite/analogWrite).
-constexpr uint8_t PIN_BACKLIGHT = D3;
+// Podświetlenie LCD jest podłączone na stałe do zasilania i nie jest
+// sterowane przez ESP8266.
 
 // ============================================================
 // Ostrzeżenia boot strap ESP8266

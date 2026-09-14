@@ -37,6 +37,7 @@ private:
     String artist_;
     String title_;
     int volume_ = -1;
+    bool offlineError_ = false;
     bool playing_ = false;
     bool cacheValid_ = false;
 };

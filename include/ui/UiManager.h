@@ -7,6 +7,7 @@
 #include "ui/HomeScreen.h"
 #include "ui/RadioScreen.h"
 #include "ui/BoilerScreen.h"
+#include "ui/BoilerTemperatureScreen.h"
 #include "ui/WeatherScreen.h"
 #include "services/RadioService.h"
 #include "services/BoilerService.h"
@@ -22,6 +23,8 @@ private:
     void redraw();
     void handleTouch(const TouchPoint& point);
     void updateVolumeHold(const TouchPoint& point);
+    void updateBoilerTemperatureHold(const TouchPoint& point);
+    void adjustBoilerTarget(float delta);
 
     DisplayDriver* display_ = nullptr;
     TouchDriver* touch_ = nullptr;
@@ -34,12 +37,16 @@ private:
     bool redrawPending_ = true;
     bool touchDown_ = false;
     RadioAction heldRadioAction_ = RadioAction::NONE;
+    BoilerTemperatureAction heldBoilerTempAction_ =
+        BoilerTemperatureAction::NONE;
     uint32_t nextVolumeRepeatMs_ = 0;
+    uint32_t nextBoilerTempRepeatMs_ = 0;
     uint32_t lastTouchMs_ = 0;
 
     BottomBar bottomBar_;
     HomeScreen home_;
     RadioScreen radio_;
     BoilerScreen boiler_;
+    BoilerTemperatureScreen boilerTemperature_;
     WeatherScreen weather_;
 };

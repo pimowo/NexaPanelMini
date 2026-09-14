@@ -21,6 +21,8 @@ końcowy kontraktu MQTT kotła.
 
 - yoRadio przez WebSocket,
 - stacja, artysta, utwór i poziom głośności,
+- po 20 s bez skutecznego połączenia z yoRadio zamiast `VOL xxx` pojawia się
+	`Błąd`,
 - poprzednia stacja, play/pause i następna stacja,
 - przytrzymanie przycisku głośności.
 
@@ -31,7 +33,18 @@ końcowy kontraktu MQTT kotła.
 - HVAC `heat/off`,
 - płomień jako status grzania,
 - temperatura aktualna i zadana,
+- dotknięcie pełnego obszaru temperatur otwiera ekran ręcznej zmiany zadanej,
 - tryby `comfort`, `sleep` i stan manualny (oba presety nieaktywne).
+
+### BOILER_TEMPERATURE
+
+- nagłówek `Temperatura`,
+- centralnie prezentowana temperatura zadana,
+- duże pola `-` i `+`,
+- zakres 15.0-25.0 C i krok 0.1 C,
+- przytrzymanie: start po 500 ms, repeat co 225 ms,
+- pojedynczy dolny przycisk `<- WRÓĆ` powracający do ekranu kotła,
+- auto-home po 30 s bez dotyku jak na pozostałych ekranach.
 
 ### WEATHER_DETAILS
 
@@ -50,7 +63,9 @@ Fizyczna kolejność od lewej strony ekranu to:
 
 `KOCIOŁ | HOME | RADIO`
 
-Belka jest stale widoczna. `WEATHER_DETAILS` pozostaje częścią sekcji HOME.
+Belka jest widoczna na ekranach głównych. `WEATHER_DETAILS` pozostaje częścią
+sekcji HOME, a ekran `BOILER_TEMPERATURE` ma własny dolny przycisk `WRÓĆ`
+zamiast standardowej belki.
 
 ## Architektura
 
@@ -122,8 +137,8 @@ kalibracja dotyku. Plik zawiera osobne sekcje MQTT dla kotła i panelu.
 
 ### `include/pins.h`
 
-Mapowanie GPIO sprzętu. D3/GPIO0 jako backlight jest jeszcze niepotwierdzony
-sprzętowo, a firmware celowo nim nie steruje.
+Mapowanie GPIO sprzętu. Podświetlenie LCD jest podłączone stale do zasilania i
+nie jest sterowane przez ESP8266.
 
 ## Build
 
@@ -141,8 +156,7 @@ W VS Code dostępne są także zadania budowania i uploadu PlatformIO.
 
 Aktualne mapowanie i ostrzeżenia bootstrapów opisuje [docs/gpio.md](docs/gpio.md).
 Najważniejsze: D8/GPIO15 musi być LOW podczas startu, a D3/GPIO0 i D4/GPIO2
-muszą być HIGH. BACKLIGHT na D3/GPIO0 jest niepotwierdzony sprzętowo i firmware
-nie steruje tym pinem.
+muszą być HIGH. Podświetlenie LCD nie używa linii sterowania z ESP8266.
 
 ## Time
 
@@ -153,7 +167,7 @@ Europe/Warsaw. Firmware nie używa RTC ani ręcznego przełączania UTC+1/UTC+2.
 
 - firmware: `0.1.0-dev`,
 - projekt: kandydat do release przed v1.0.0,
-- decyzja dotycząca backlightu nadal wymaga potwierdzenia PCB,
+- backlight jest sprzętowo zasilany stale i nie jest sterowany przez firmware,
 - końcowy 24-godzinny soak test nie został jeszcze wykonany.
 
 Folder `reference/` jest materiałem historycznym ignorowanym przez Git i nie

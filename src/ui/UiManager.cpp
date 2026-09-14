@@ -1,5 +1,6 @@
 #include "ui/UiManager.h"
 #include "config.h"
+#include <math.h>
 
 void UiManager::begin(DisplayDriver& display, TouchDriver& touch,
                       Navigation& navigation, RadioService& radioService,
@@ -42,12 +43,24 @@ void UiManager::update(AppState& state) {
                 nextVolumeRepeatMs_ = millis() +
                                      AppConfig::UI_VOLUME_HOLD_INITIAL_MS;
             }
+        } else if (navigation_->currentScreen() ==
+                   ScreenId::BOILER_TEMPERATURE) {
+            const BoilerTemperatureAction action =
+                boilerTemperature_.actionAt(p);
+            if (action == BoilerTemperatureAction::DECREASE ||
+                action == BoilerTemperatureAction::INCREASE) {
+                heldBoilerTempAction_ = action;
+                nextBoilerTempRepeatMs_ = millis() +
+                    AppConfig::BOILER_TEMP_HOLD_START_MS;
+            }
         }
     } else if (p.touched) {
         updateVolumeHold(p);
+        updateBoilerTemperatureHold(p);
     } else if (!p.touched) {
         touchDown_ = false;
         heldRadioAction_ = RadioAction::NONE;
+        heldBoilerTempAction_ = BoilerTemperatureAction::NONE;
     }
 
     if (navigation_->currentScreen() != lastScreen_) {
@@ -61,6 +74,7 @@ void UiManager::update(AppState& state) {
             static_cast<int32_t>(AppConfig::UI_HOME_TIMEOUT_MS)) {
         navigation_->goTo(ScreenId::HOME);
         heldRadioAction_ = RadioAction::NONE;
+        heldBoilerTempAction_ = BoilerTemperatureAction::NONE;
         touchDown_ = false;
         lastScreen_ = ScreenId::HOME;
         redrawPending_ = true;
@@ -83,20 +97,28 @@ void UiManager::update(AppState& state) {
             case ScreenId::WEATHER_DETAILS:
                 weather_.update(*display_, state);
                 break;
+            case ScreenId::BOILER_TEMPERATURE:
+                boilerTemperature_.update(*display_, state);
+                break;
         }
     }
 
-    bottomBar_.update(*display_, navigation_->activeSection());
+    if (navigation_->currentScreen() != ScreenId::BOILER_TEMPERATURE) {
+        bottomBar_.update(*display_, navigation_->activeSection());
+    }
 }
 
 void UiManager::handleTouch(const TouchPoint& point) {
+    const ScreenId screen = navigation_->currentScreen();
+
     MainSection section;
-    if (bottomBar_.sectionAt(point, section)) {
+    if (screen != ScreenId::BOILER_TEMPERATURE &&
+        bottomBar_.sectionAt(point, section)) {
         bottomBar_.handleTouch(point, *navigation_);
         return;
     }
 
-    if (navigation_->currentScreen() == ScreenId::HOME) {
+    if (screen == ScreenId::HOME) {
         if (point.y >= 130 && point.y < BottomBar::Y) {
             navigation_->goTo(ScreenId::WEATHER_DETAILS);
             redrawPending_ = true;
@@ -104,7 +126,7 @@ void UiManager::handleTouch(const TouchPoint& point) {
         return;
     }
 
-    if (navigation_->currentScreen() == ScreenId::RADIO && radioService_) {
+    if (screen == ScreenId::RADIO && radioService_) {
         switch (radio_.actionAt(point)) {
             case RadioAction::VOLUME_DOWN:
                 radioService_->volumeDown();
@@ -127,7 +149,7 @@ void UiManager::handleTouch(const TouchPoint& point) {
         return;
     }
 
-    if (navigation_->currentScreen() == ScreenId::BOILER && boilerService_ &&
+    if (screen == ScreenId::BOILER && boilerService_ &&
         state_) {
         switch (boiler_.actionAt(point)) {
             case BoilerAction::TOGGLE_POWER:
@@ -142,7 +164,29 @@ void UiManager::handleTouch(const TouchPoint& point) {
             case BoilerAction::SLEEP:
                 boilerService_->setComfortMode(false);
                 break;
+            case BoilerAction::OPEN_TEMPERATURE:
+                navigation_->goTo(ScreenId::BOILER_TEMPERATURE);
+                redrawPending_ = true;
+                break;
             case BoilerAction::NONE:
+                break;
+        }
+        return;
+    }
+
+    if (screen == ScreenId::BOILER_TEMPERATURE && boilerService_ && state_) {
+        switch (boilerTemperature_.actionAt(point)) {
+            case BoilerTemperatureAction::DECREASE:
+                adjustBoilerTarget(-0.1F);
+                break;
+            case BoilerTemperatureAction::INCREASE:
+                adjustBoilerTarget(0.1F);
+                break;
+            case BoilerTemperatureAction::BACK:
+                navigation_->goTo(ScreenId::BOILER);
+                redrawPending_ = true;
+                break;
+            case BoilerTemperatureAction::NONE:
                 break;
         }
     }
@@ -160,6 +204,45 @@ void UiManager::updateVolumeHold(const TouchPoint& point) {
     if (heldRadioAction_ == RadioAction::VOLUME_DOWN) radioService_->volumeDown();
     else radioService_->volumeUp();
     nextVolumeRepeatMs_ = now + AppConfig::UI_VOLUME_HOLD_REPEAT_MS;
+}
+
+void UiManager::updateBoilerTemperatureHold(const TouchPoint& point) {
+    if (heldBoilerTempAction_ == BoilerTemperatureAction::NONE ||
+        navigation_->currentScreen() != ScreenId::BOILER_TEMPERATURE ||
+        !boilerService_ || !state_ ||
+        boilerTemperature_.actionAt(point) != heldBoilerTempAction_) {
+        heldBoilerTempAction_ = BoilerTemperatureAction::NONE;
+        return;
+    }
+
+    const uint32_t now = millis();
+    if (static_cast<int32_t>(now - nextBoilerTempRepeatMs_) < 0) return;
+
+    if (heldBoilerTempAction_ == BoilerTemperatureAction::DECREASE) {
+        adjustBoilerTarget(-0.1F);
+    } else {
+        adjustBoilerTarget(0.1F);
+    }
+    nextBoilerTempRepeatMs_ = now + AppConfig::BOILER_TEMP_REPEAT_MS;
+}
+
+void UiManager::adjustBoilerTarget(float delta) {
+    if (!state_ || !boilerService_) return;
+
+    float base = boilerTemperature_.displayedTarget();
+    if (!isfinite(base)) {
+        base = isfinite(state_->boilerTargetTemp)
+            ? state_->boilerTargetTemp
+            : 20.0F;
+    }
+
+    float next = roundf((base + delta) * 10.0F) / 10.0F;
+    if (next < 15.0F) next = 15.0F;
+    if (next > 25.0F) next = 25.0F;
+    if (fabsf(next - base) < 0.05F) return;
+
+    boilerTemperature_.setLocalTarget(next);
+    boilerService_->setTargetTemperature(next);
 }
 
 void UiManager::redraw() {
@@ -194,6 +277,12 @@ void UiManager::redraw() {
             screenName = "WEATHER_DETAILS";
 #endif
             weather_.draw(*display_, *state_);
+            break;
+        case ScreenId::BOILER_TEMPERATURE:
+    #ifdef UI_DRAW_DIAGNOSTICS
+            screenName = "BOILER_TEMPERATURE";
+    #endif
+            boilerTemperature_.draw(*display_, *state_);
             break;
     }
 

@@ -5,6 +5,7 @@ enum class BoilerAction : uint8_t {
     NONE,
     TOGGLE_POWER,
     TOGGLE_HVAC,
+    OPEN_TEMPERATURE,
     COMFORT,
     SLEEP
 };

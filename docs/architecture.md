@@ -40,6 +40,7 @@ Role używają oddzielnych namespace topiców.
 - `HomeScreen`,
 - `RadioScreen`,
 - `BoilerScreen`,
+- `BoilerTemperatureScreen`,
 - `WeatherScreen`,
 - `BottomBar`.
 
@@ -72,8 +73,12 @@ krótką operacją HTTP kontrolowaną timeoutem klienta.
 
 Ekran jest rysowany ponownie przy zmianie nawigacji. Przy pozostaniu na ekranie
 `update()` porównuje dane z cache i odświeża tylko zmienione regiony. Dolna
-belka ma własny cache aktywnej sekcji. Projekt nie alokuje dużego framebufferu;
-rysuje bezpośrednio do TFT.
+belka ma własny cache aktywnej sekcji i nie jest rysowana na
+`BOILER_TEMPERATURE`, który posiada własny dolny przycisk `WRÓĆ`. Projekt nie
+alokuje dużego framebufferu; rysuje bezpośrednio do TFT.
 
 Auto-home po 30 sekundach bez nowego dotyku wraca z każdego ekranu poza HOME do
 HOME. Nowy dotyk resetuje licznik.
+
+Na ekranie `BOILER_TEMPERATURE` przyciski `-` i `+` korzystają z nieblokującego
+hold/repeat (500 ms / 225 ms) w pętli `UiManager`.

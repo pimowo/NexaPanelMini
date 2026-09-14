@@ -99,6 +99,9 @@ bool applyMeta(AppState& state, const char* value) {
 
 void RadioService::begin(AppState& state) {
     state_ = &state;
+    state.radioOfflineError = false;
+    offlineTimerArmed_ = true;
+    offlineStartedMs_ = millis();
     retryDelayMs_ = AppConfig::YORADIO_RECONNECT_MIN_MS;
     Serial.printf("YORADIO HOST: %s:%u\n", AppConfig::YORADIO_HOST,
                   AppConfig::YORADIO_PORT);
@@ -125,6 +128,7 @@ void RadioService::update(AppState& state) {
             phase_ = Phase::IDLE;
             setOffline(true);
         }
+        updateOfflineErrorUi();
         return;
     }
 
@@ -170,6 +174,8 @@ void RadioService::update(AppState& state) {
                now - phaseStartedMs_ >= retryDelayMs_) {
         startSession();
     }
+
+    updateOfflineErrorUi();
 
 }
 
@@ -291,6 +297,9 @@ bool RadioService::processMessage(const uint8_t* payload, size_t length) {
     }
     if (!state_->radioOnline) {
         state_->radioOnline = true;
+        state_->radioOfflineError = false;
+        offlineTimerArmed_ = false;
+        offlineStartedMs_ = 0;
         changed = true;
     }
     if (changed) ++state_->radioRevision;
@@ -319,6 +328,10 @@ void RadioService::setOffline(bool clearMedia) {
         state_->radioOnline = false;
         changed = true;
     }
+    if (!offlineTimerArmed_) {
+        offlineTimerArmed_ = true;
+        offlineStartedMs_ = millis();
+    }
     if (state_->radioPlaying) {
         state_->radioPlaying = false;
         changed = true;
@@ -329,6 +342,31 @@ void RadioService::setOffline(bool clearMedia) {
         changed |= setString(state_->radioTitle, "---");
     }
     if (changed) ++state_->radioRevision;
+}
+
+void RadioService::updateOfflineErrorUi() {
+    if (!state_) return;
+
+    if (state_->radioOnline) {
+        if (state_->radioOfflineError) {
+            state_->radioOfflineError = false;
+            ++state_->radioRevision;
+        }
+        offlineTimerArmed_ = false;
+        offlineStartedMs_ = 0;
+        return;
+    }
+
+    if (!offlineTimerArmed_) {
+        offlineTimerArmed_ = true;
+        offlineStartedMs_ = millis();
+    }
+
+    if (!state_->radioOfflineError &&
+        millis() - offlineStartedMs_ >= AppConfig::RADIO_OFFLINE_UI_TIMEOUT_MS) {
+        state_->radioOfflineError = true;
+        ++state_->radioRevision;
+    }
 }
 
 void RadioService::scheduleRetry() {

@@ -74,7 +74,8 @@ void RadioScreen::update(DisplayDriver& display, const AppState& state) {
     if (!cacheValid_ || playing_ != state.radioPlaying) {
         drawPlayback(display, state);
     }
-    if (!cacheValid_ || volume_ != state.radioVolume) {
+    if (!cacheValid_ || volume_ != state.radioVolume ||
+        offlineError_ != state.radioOfflineError) {
         drawVolume(display, state);
     }
     cacheState(state);
@@ -127,7 +128,10 @@ void RadioScreen::drawPlayback(DisplayDriver& display, const AppState& state,
 void RadioScreen::drawVolume(DisplayDriver& display, const AppState& state,
                              bool clearRegion) {
     if (clearRegion) display.tft().fillRect(62, 6, 116, 44, Theme::BG);
-    display.drawUtf8("VOL " + String(state.radioVolume), 120, 28, 4,
+    const String value = state.radioOfflineError
+        ? "Błąd"
+        : "VOL " + String(state.radioVolume);
+    display.drawUtf8(value, 120, 28, 4,
                      Theme::ACCENT, Theme::BG, MC_DATUM);
 }
 
@@ -148,6 +152,7 @@ void RadioScreen::cacheState(const AppState& state) {
     artist_ = state.radioArtist;
     title_ = state.radioTitle;
     volume_ = state.radioVolume;
+    offlineError_ = state.radioOfflineError;
     playing_ = state.radioPlaying;
     revision_ = state.radioRevision;
     cacheValid_ = true;

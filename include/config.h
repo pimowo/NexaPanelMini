@@ -91,6 +91,11 @@ constexpr const char* WEATHER_LONGITUDE = "16.63478";
 constexpr unsigned long UI_HOME_TIMEOUT_MS = 30000UL;
 constexpr unsigned long UI_VOLUME_HOLD_INITIAL_MS = 500UL;
 constexpr unsigned long UI_VOLUME_HOLD_REPEAT_MS = 225UL;
+// Po tym czasie bez skutecznego połączenia z yoRadio UI pokazuje "Błąd".
+constexpr unsigned long RADIO_OFFLINE_UI_TIMEOUT_MS = 20000UL;
+// Przytrzymanie +/- temperatury kotła.
+constexpr unsigned long BOILER_TEMP_HOLD_START_MS = 500UL;
+constexpr unsigned long BOILER_TEMP_REPEAT_MS = 225UL;
 
 // ============================================================
 // Timeouty i reconnect

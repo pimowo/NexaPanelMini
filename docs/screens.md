@@ -1,12 +1,13 @@
 # Ekrany i nawigacja
 
-Ekran ma rozmiar 240x320 w orientacji pionowej. Dolna belka zajmuje dolne 54
-px i jest rysowana na każdym ekranie. Jej kolejność od lewej to:
+Ekran ma rozmiar 240x320 w orientacji pionowej. Standardowa dolna belka
+zajmuje dolne 54 px. Jej kolejność od lewej to:
 
 `KOCIOŁ | HOME | RADIO`
 
 Aktywna sekcja jest rysowana kolorem akcentu. Kod nie implementuje osobnego
-widocznego stanu po dotknięciu.
+widocznego stanu po dotknięciu. Wyjątkiem jest ekran `BOILER_TEMPERATURE`,
+który używa własnego przycisku `WRÓĆ` zamiast standardowej belki.
 
 ## HOME
 
@@ -27,11 +28,19 @@ Ekran pokazuje stację, artystę, utwór, stan odtwarzania i głośność. Dost�
 akcje to poprzednia stacja, play/pause, następna stacja oraz zmniejszanie i
 zwiększanie głośności. Przytrzymanie przycisku głośności powtarza komendę.
 
+Jeśli po starcie albo po rozłączeniu przez ponad 20 s brak skutecznego
+połączenia WebSocket, pole głośności pokazuje `Błąd` zamiast `VOL xxx`.
+Po reconnect UI automatycznie wraca do `VOL xxx`.
+
 ## BOILER
 
 Ekran pokazuje stan zasilania, HVAC, status grzania/płomienia, temperaturę
 aktualną i zadaną oraz tryb comfort/sleep. Sterowanie wysyła komendy przez
 `BoilerService`.
+
+Kliknięcie pełnego prostokątnego obszaru temperatur (od górnej linii etykiet
+`Aktualna`/`Zadana` do dołu wartości i na pełnej szerokości ekranu) przechodzi
+do `BOILER_TEMPERATURE`.
 
 Renderowanie presetu:
 
@@ -41,6 +50,19 @@ Renderowanie presetu:
 
 Stan MANUAL wynika z rzeczywistego `preset_mode` z MQTT, bez heurystyki
 temperatury.
+
+## BOILER_TEMPERATURE
+
+Dedykowany ekran ręcznej zmiany temperatury zadanej kotła:
+
+- nagłówek `Temperatura` jak na `WEATHER_DETAILS`,
+- centralna wartość `xx.x°C`,
+- duże pola `-` i `+` po bokach,
+- krok 0.1 C w zakresie 15.0-25.0 C,
+- przytrzymanie: start 500 ms, repeat 225 ms,
+- natychmiastowa aktualizacja LCD po kliknięciu,
+- po nadejściu stanu MQTT wartość z `AppState` nadpisuje lokalny podgląd,
+- szeroki przycisk `<- WRÓĆ` na dole prowadzi do `BOILER`.
 
 ## Auto-home
 

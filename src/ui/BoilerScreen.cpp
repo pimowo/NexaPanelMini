@@ -6,9 +6,11 @@
 namespace {
 constexpr int16_t STATUS_Y = 4;
 constexpr int16_t STATUS_HEIGHT = 52;
+constexpr int16_t TEMPERATURE_TOUCH_TOP = 108;
+constexpr int16_t TEMPERATURE_TOUCH_BOTTOM = 194;
 constexpr int16_t PRESET_Y = 218;
 constexpr uint16_t ACTIVE_GREEN = 0x07E0;
-constexpr uint16_t FLAME_ORANGE = 0xFD20;
+constexpr uint16_t FLAME_RED = 0xF800;
 constexpr uint16_t SUN_YELLOW = 0xFFE0;
 constexpr uint16_t SLEEP_BLUE = 0x04FF;
 
@@ -124,8 +126,10 @@ void BoilerScreen::drawFlame(DisplayDriver& display, const AppState& state,
     auto& tft = display.tft();
     if (clearRegion) tft.fillRect(84, STATUS_Y, 72, STATUS_HEIGHT, Theme::BG);
     const uint16_t color = state.boilerOnline && state.boilerEnabled
-        ? FLAME_ORANGE : Theme::DIM;
-    tft.drawRect(84, STATUS_Y, 72, STATUS_HEIGHT, Theme::DIM);
+        ? FLAME_RED : Theme::DIM;
+    const uint16_t border = state.boilerOnline && state.boilerEnabled
+        ? ACTIVE_GREEN : Theme::DIM;
+    tft.drawRect(84, STATUS_Y, 72, STATUS_HEIGHT, border);
     drawFlameIcon(tft, 120, STATUS_Y + 26, color);
 }
 
@@ -192,6 +196,9 @@ void BoilerScreen::cacheState(const AppState& state) {
 BoilerAction BoilerScreen::actionAt(const TouchPoint& point) const {
     if (!point.touched || point.y < 0 || point.y >= BottomBar::Y) {
         return BoilerAction::NONE;
+    }
+    if (point.y >= TEMPERATURE_TOUCH_TOP && point.y < TEMPERATURE_TOUCH_BOTTOM) {
+        return BoilerAction::OPEN_TEMPERATURE;
     }
     if (point.y >= STATUS_Y && point.y < STATUS_Y + STATUS_HEIGHT) {
         if (point.x >= 4 && point.x < 76) return BoilerAction::TOGGLE_POWER;

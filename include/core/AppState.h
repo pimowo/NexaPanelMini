@@ -36,6 +36,7 @@ struct AppState {
 
     // yoRadio
     bool radioOnline = false;
+    bool radioOfflineError = false;
     bool radioPlaying = false;
     int radioVolume = 0;
     int radioBitrate = 0;

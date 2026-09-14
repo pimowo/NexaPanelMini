@@ -5,7 +5,8 @@ enum class ScreenId : uint8_t {
     HOME,
     RADIO,
     BOILER,
-    WEATHER_DETAILS
+    WEATHER_DETAILS,
+    BOILER_TEMPERATURE
 };
 
 enum class MainSection : uint8_t {

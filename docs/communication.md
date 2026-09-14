@@ -53,6 +53,11 @@ Po 60 sekundach ciszy wysyłane jest ponownie `getindex=1`. Timeout połączenia
 timeout pierwszych danych i timeout odświeżenia powodują rozłączenie oraz
 reconnect z backoffem 1, 2, 5, 10 i 30 s.
 
+UI radia pokazuje `Błąd` w miejscu `VOL xxx`, jeśli od startu albo od ostatniego
+rozłączenia przez ponad 20 s brak skutecznego połączenia WebSocket. Kryterium
+opiera się o realny stan połączenia, nie o sam brak metadanych. Po odzyskaniu
+połączenia `Błąd` znika automatycznie.
+
 ## MQTT kotła
 
 `BoilerService` używa MQTT przez bibliotekę `256dpi/MQTT`. Wszystkie topici są
@@ -87,6 +92,10 @@ Komendy:
 - `kuchnia-panel/ha/command/climate/temperature`: liczba z jedną cyfrą po
 	przecinku w zakresie 15.0-25.0,
 - `kuchnia-panel/ha/command/boiler_power`: `ON` albo `OFF`.
+
+Ekran `BOILER_TEMPERATURE` używa tej samej komendy temperatury. Klik `-`/`+`
+zmienia lokalny podgląd o 0.1 C i od razu publikuje komendę, a późniejszy stan
+MQTT pozostaje źródłem prawdy i nadpisuje podgląd.
 
 Połączenie MQTT ma keepalive 15 s i reconnect z backoffem od 1 s do 30 s.
 

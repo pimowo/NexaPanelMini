@@ -53,7 +53,7 @@ void WeatherScreen::drawDay(DisplayDriver& display, const WeatherDay& day,
     display.drawUtf8(day.dateText, 14, y + 12, 2,
                      Theme::TEXT, Theme::BG, ML_DATUM);
     drawWeatherIcon(tft, 26, y + 27, 32, day.weatherCode);
-    const String temperatures = String(day.tempMax, 0) + "°C/" +
+    const String temperatures = String(day.tempMax, 0) + "°C / " +
                                 String(day.tempMin, 0) + "°C";
     display.drawUtf8(temperatures, 226, y + 45, 4,
                      Theme::TEXT, Theme::BG, MR_DATUM);

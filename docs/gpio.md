@@ -11,7 +11,7 @@
 | Touch CS | D2 / GPIO4 |  |
 | Touch IRQ | D0 / GPIO16 | sterownik działa przez polling; IRQ nie jest używane |
 | SD CS | D4 / GPIO2 | obecnie nieużywany, musi być HIGH podczas boot |
-| BACKLIGHT | D3 / GPIO0 | niepotwierdzony sprzętowo, firmware nie steruje |
+| BACKLIGHT | - | podłączony sprzętowo stale do zasilania, bez sterowania z ESP |
 
 ## Bootstrap ESP8266
 
@@ -26,15 +26,5 @@ D3/GPIO0 jest pinem wyboru trybu boot.
 
 ## Backlight
 
-`PIN_BACKLIGHT = D3` jest na razie tylko deklaracją mapowania. Firmware celowo
-nie wykonuje na tym pinie `pinMode`, `digitalWrite` ani `analogWrite`.
-Najpierw należy sprawdzić konkretną rewizję PCB i połączenie D3 z linią BL.
-
-Procedura pomiaru:
-
-1. Wyłącz zasilanie.
-2. Ustaw multimetr na ciągłość lub niski zakres rezystancji.
-3. Sprawdź ciągłość D3 <-> BL.
-4. Ustal, czy po drodze występuje rezystor, tranzystor lub inny układ.
-5. Po identyfikacji układu zmierz BL względem GND, 3V3 i 5V.
-6. Nie podawaj PWM ani nie wymuszaj stanu na D3 przed potwierdzeniem PCB.
+Podświetlenie LCD jest sprzętowo zasilane na stałe i nie ma linii sterowania z
+ESP8266 w aktualnym układzie.
