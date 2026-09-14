@@ -41,14 +41,16 @@ void BoilerTemperatureScreen::draw(DisplayDriver& display,
     drawControls(display);
     drawTarget(display, false);
     cacheValid_ = true;
+    targetDirty_ = false;
 }
 
 void BoilerTemperatureScreen::update(DisplayDriver& display,
                                      const AppState& state) {
-    const float before = displayedTarget_;
     syncFromState(state);
-    if (!cacheValid_ || !sameTemperature(before, displayedTarget_)) {
+    if (!cacheValid_ || targetDirty_ ||
+        !sameTemperature(renderedTarget_, displayedTarget_)) {
         drawTarget(display);
+        targetDirty_ = false;
     }
     cacheValid_ = true;
 }
@@ -73,8 +75,7 @@ BoilerTemperatureAction BoilerTemperatureScreen::actionAt(
 }
 
 void BoilerTemperatureScreen::setLocalTarget(float target) {
-    displayedTarget_ = target;
-    localOverride_ = true;
+    setDisplayedTarget(target, true);
 }
 
 float BoilerTemperatureScreen::displayedTarget() const {
@@ -113,26 +114,35 @@ void BoilerTemperatureScreen::drawTarget(DisplayDriver& display,
         : String(displayedTarget_, 1) + "°C";
     display.drawUtf8(value, 120, 148, 4,
                      Theme::TEXT, Theme::BG, MC_DATUM);
+    renderedTarget_ = displayedTarget_;
 }
 
 void BoilerTemperatureScreen::syncFromState(const AppState& state) {
     if (!isfinite(state.boilerTargetTemp)) return;
 
     if (!cacheValid_) {
-        displayedTarget_ = state.boilerTargetTemp;
+        setDisplayedTarget(state.boilerTargetTemp, false);
         lastStateTarget_ = state.boilerTargetTemp;
-        localOverride_ = false;
         return;
     }
 
     if (!sameTemperature(lastStateTarget_, state.boilerTargetTemp)) {
         lastStateTarget_ = state.boilerTargetTemp;
-        displayedTarget_ = state.boilerTargetTemp;
-        localOverride_ = false;
+        setDisplayedTarget(state.boilerTargetTemp, false);
         return;
     }
 
     if (!localOverride_ && !sameTemperature(displayedTarget_, state.boilerTargetTemp)) {
-        displayedTarget_ = state.boilerTargetTemp;
+        setDisplayedTarget(state.boilerTargetTemp, false);
     }
+}
+
+void BoilerTemperatureScreen::setDisplayedTarget(float target,
+                                                 bool localOverride) {
+    if (!sameTemperature(displayedTarget_, target) ||
+        localOverride_ != localOverride) {
+        targetDirty_ = true;
+    }
+    displayedTarget_ = target;
+    localOverride_ = localOverride;
 }

@@ -22,9 +22,12 @@ private:
     void drawControls(DisplayDriver& display);
     void drawTarget(DisplayDriver& display, bool clearRegion = true);
     void syncFromState(const AppState& state);
+    void setDisplayedTarget(float target, bool localOverride);
 
     float displayedTarget_ = NAN;
+    float renderedTarget_ = NAN;
     float lastStateTarget_ = NAN;
     bool localOverride_ = false;
     bool cacheValid_ = false;
+    bool targetDirty_ = true;
 };
