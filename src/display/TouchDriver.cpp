@@ -1,5 +1,5 @@
 #include "display/TouchDriver.h"
-#include "app_config.h"
+#include "config.h"
 
 TouchDriver::TouchDriver()
     : touch_(PIN_TOUCH_CS) {}

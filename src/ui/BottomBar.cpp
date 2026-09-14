@@ -21,7 +21,6 @@ void BottomBar::update(DisplayDriver& display, MainSection active) {
 
     auto& tft = display.tft();
     const bool firstRender = !rendered_;
-    uint8_t segmentCount = 0;
 
     if (firstRender) {
         tft.drawFastHLine(0, Y, 240, Theme::DIM);
@@ -31,22 +30,17 @@ void BottomBar::update(DisplayDriver& display, MainSection active) {
                     active == MainSection::HOME);
         drawSegment(display, MainSection::RADIO,
                     active == MainSection::RADIO);
-        segmentCount = 3;
     } else {
-        drawSegment(display, lastActiveSection_, false);
-        drawSegment(display, active, true);
-        segmentCount = 2;
+        if (lastActiveSection_ != MainSection::NONE) {
+            drawSegment(display, lastActiveSection_, false);
+        }
+        if (active != MainSection::NONE) {
+            drawSegment(display, active, true);
+        }
     }
 
     rendered_ = true;
     lastActiveSection_ = active;
-    ++renderCount_;
-#ifdef BOTTOMBAR_RENDER_DIAGNOSTICS
-    Serial.printf("BOTTOMBAR render count=%lu reason=%s segments=%u\n",
-                  static_cast<unsigned long>(renderCount_),
-                  firstRender ? "screen_enter" : "active_change",
-                  segmentCount);
-#endif
 }
 
 void BottomBar::drawSegment(DisplayDriver& display, MainSection section,
@@ -73,6 +67,8 @@ void BottomBar::drawSegment(DisplayDriver& display, MainSection section,
 
 int16_t BottomBar::segmentX(MainSection section) const {
     switch (section) {
+        case MainSection::NONE:
+            return -80;
         case MainSection::BOILER:
             return 0;
         case MainSection::HOME:
@@ -88,6 +84,8 @@ bool BottomBar::handleTouch(const TouchPoint& point, Navigation& navigation) {
     if (!sectionAt(point, section)) return false;
 
     switch (section) {
+        case MainSection::NONE:
+            return false;
         case MainSection::BOILER:
             navigation.goTo(ScreenId::BOILER);
             break;

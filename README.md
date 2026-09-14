@@ -9,6 +9,21 @@ Mały panel łazienkowy oparty o:
 - Wi-Fi
 - czas wyłącznie z NTP
 
+## Konfiguracja lokalna
+
+Skopiuj `include/secrets.example.h` jako `include/secrets.h` i uzupełnij
+wartości lokalne. Plik `include/secrets.h` jest ignorowany przez Git.
+
+```cpp
+#define YORADIO_HOST_VALUE "192.168.1.100"
+#define YORADIO_PORT_VALUE 80
+#define WEATHER_LATITUDE_VALUE "52.2297"
+#define WEATHER_LONGITUDE_VALUE "21.0122"
+```
+
+Adres yoRadio i współrzędne Open-Meteo są pobierane wyłącznie z tego pliku.
+Puste współrzędne wyłączają pobieranie pogody bez blokowania pozostałych usług.
+
 ## Główne ekrany
 
 - HOME

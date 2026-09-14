@@ -19,6 +19,7 @@ MainSection Navigation::activeSection() const {
         case ScreenId::BOILER:
             return MainSection::BOILER;
         case ScreenId::WEATHER_DETAILS:
+            return MainSection::NONE;
         case ScreenId::HOME:
         default:
             return MainSection::HOME;

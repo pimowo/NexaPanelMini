@@ -7,6 +7,10 @@ public:
     void update(DisplayDriver& display, const AppState& state) override;
 
 private:
-    void drawContent(DisplayDriver& display, const AppState& state);
-    uint32_t revision_ = UINT32_MAX;
+    void drawStatic(DisplayDriver& display);
+    void drawDay(DisplayDriver& display, const WeatherDay& day,
+                 uint8_t index, bool clearRegion = true);
+
+    WeatherDay days_[3];
+    bool cacheValid_ = false;
 };

@@ -21,5 +21,4 @@ private:
 
     bool rendered_ = false;
     MainSection lastActiveSection_ = MainSection::HOME;
-    uint32_t renderCount_ = 0;
 };

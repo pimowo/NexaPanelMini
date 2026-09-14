@@ -13,6 +13,50 @@
 				"$gcc"
 			],
 			"group": "build"
+		},
+		{
+			"label": "PlatformIO Upload NexaPanelMini",
+			"type": "shell",
+			"command": "C:\\Users\\piotrek\\.platformio\\penv\\Scripts\\pio.exe",
+			"args": [
+				"run",
+				"--target",
+				"upload",
+				"--upload-port",
+				"COM5"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$gcc"
+			]
+		},
+		{
+			"label": "Git Quick Status",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short",
+				"--branch"
+			]
+		},
+		{
+			"label": "Git Diff Check",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--check"
+			]
+		},
+		{
+			"label": "Git Add All",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"add",
+				"-A"
+			]
 		}
 	]
 }

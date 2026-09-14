@@ -8,9 +8,24 @@ public:
     void onTouch(const TouchPoint& point) override;
 
 private:
-    void drawTime(DisplayDriver& display, const AppState& state);
-    void drawWeather(DisplayDriver& display, const AppState& state);
+    void drawClock(DisplayDriver& display, const AppState& state,
+                   bool clearRegion = true);
+    void drawWeekday(DisplayDriver& display, const AppState& state,
+                     bool clearRegion = true);
+    void drawDate(DisplayDriver& display, const AppState& state,
+                  bool clearRegion = true);
+    void drawWeatherSummary(DisplayDriver& display, const AppState& state,
+                            bool clearRegion = true);
+    void drawTemperature(DisplayDriver& display, const AppState& state,
+                         bool clearRegion = true);
 
-    uint32_t timeRevision_ = UINT32_MAX;
-    uint32_t weatherRevision_ = UINT32_MAX;
+    String clock_;
+    String weekday_;
+    String date_;
+    float temperature_ = NAN;
+    float todayMax_ = NAN;
+    float todayMin_ = NAN;
+    int weatherCode_ = -2;
+    bool weatherValid_ = false;
+    bool cacheValid_ = false;
 };

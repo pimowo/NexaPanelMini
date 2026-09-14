@@ -2,8 +2,8 @@
 #include <Arduino.h>
 
 struct WeatherDay {
-    String dayName;
-    String condition;
+    String dateText;
+    int weatherCode = -1;
     float tempMin = NAN;
     float tempMax = NAN;
 };
@@ -22,16 +22,17 @@ struct AppState {
 
     // Pogoda
     bool weatherValid = false;
+    int currentWeatherCode = -1;
     float outsideTemp = NAN;
-    String weatherText = "---";
     float todayMin = NAN;
     float todayMax = NAN;
-    WeatherDay forecast[5];
+    WeatherDay forecast[4];
 
     // yoRadio
     bool radioOnline = false;
     bool radioPlaying = false;
     int radioVolume = 0;
+    int radioBitrate = 0;
     String radioStation = "---";
     String radioArtist = "---";
     String radioTitle = "---";
@@ -39,6 +40,9 @@ struct AppState {
     // Kocioł
     bool boilerOnline = false;
     bool boilerEnabled = false;
+    bool boilerPowerOn = false;
+    bool boilerHvacHeat = false;
+    bool boilerComfortMode = false;
     float boilerCurrentTemp = NAN;
     float boilerTargetTemp = NAN;
 

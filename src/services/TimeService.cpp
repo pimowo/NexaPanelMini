@@ -1,6 +1,6 @@
 #include "services/TimeService.h"
 #include <time.h>
-#include "app_config.h"
+#include "config.h"
 
 void TimeService::begin() {
     configTime(AppConfig::TIMEZONE_RULE,

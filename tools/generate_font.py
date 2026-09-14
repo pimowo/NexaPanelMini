@@ -11,7 +11,7 @@ FONT_URL = (
 )
 FONT_SIZES = (15, 24)
 POLISH_LETTERS = "ĄĆĘŁŃÓŚŹŻąćęłńóśźż"
-CHARACTERS = "".join(chr(code) for code in range(32, 127)) + POLISH_LETTERS
+CHARACTERS = "".join(chr(code) for code in range(32, 127)) + "°" + POLISH_LETTERS
 OUTPUT = Path(__file__).parents[1] / "include" / "display" / "NotoSansPl.h"
 
 

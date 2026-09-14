@@ -30,12 +30,26 @@ int16_t DisplayDriver::drawUtf8(const char* text, int16_t x, int16_t y,
                                 uint16_t background, uint8_t datum) {
     if (text == nullptr) return 0;
 
+#ifdef UI_DRAW_DIAGNOSTICS
+    uint32_t startedUs = micros();
+#endif
     selectFont(font);
+#ifdef UI_DRAW_DIAGNOSTICS
+    fontSelectUs_ += micros() - startedUs;
+#endif
     tft_.setTextColor(foreground, background);
     tft_.setTextDatum(datum);
-    return loadedSmoothFont_ == 0
-               ? tft_.drawString(text, x, y, font)
-               : tft_.drawString(text, x, y);
+#ifdef UI_DRAW_DIAGNOSTICS
+    startedUs = micros();
+#endif
+    const int16_t width = loadedSmoothFont_ == 0
+                              ? tft_.drawString(text, x, y, font)
+                              : tft_.drawString(text, x, y);
+#ifdef UI_DRAW_DIAGNOSTICS
+    textDrawUs_ += micros() - startedUs;
+    ++textDrawCount_;
+#endif
+    return width;
 }
 
 int16_t DisplayDriver::drawUtf8(const String& text, int16_t x, int16_t y,
@@ -52,4 +66,26 @@ void DisplayDriver::selectFont(uint8_t font) {
     if (smoothFont == 2) tft_.loadFont(NotoSansPl15);
     if (smoothFont == 4) tft_.loadFont(NotoSansPl24);
     loadedSmoothFont_ = smoothFont;
+#ifdef UI_DRAW_DIAGNOSTICS
+    ++fontSwitchCount_;
+#endif
 }
+
+#ifdef UI_DRAW_DIAGNOSTICS
+void DisplayDriver::resetDrawDiagnostics() {
+    fontSelectUs_ = 0;
+    textDrawUs_ = 0;
+    textDrawCount_ = 0;
+    fontSwitchCount_ = 0;
+}
+
+void DisplayDriver::printDrawDiagnostics(uint32_t totalUs) const {
+    const uint32_t otherUs = totalUs - fontSelectUs_ - textDrawUs_;
+    Serial.printf("UI DRAW detail text=%lu us font=%lu us other=%lu us "
+                  "strings=%u switches=%u\n",
+                  static_cast<unsigned long>(textDrawUs_),
+                  static_cast<unsigned long>(fontSelectUs_),
+                  static_cast<unsigned long>(otherUs), textDrawCount_,
+                  fontSwitchCount_);
+}
+#endif

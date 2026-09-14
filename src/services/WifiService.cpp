@@ -1,6 +1,6 @@
 #include "services/WifiService.h"
 #include <ESP8266WiFi.h>
-#include "app_config.h"
+#include "config.h"
 
 void WifiService::begin() {
     WiFi.persistent(false);
@@ -11,7 +11,7 @@ void WifiService::begin() {
 
     if (AppConfig::WIFI_SSID[0] == '\0') {
         phase_ = Phase::DISABLED;
-        Serial.println("WIFI DISABLED: ustaw WIFI_SSID w app_config.h");
+        Serial.println("WIFI DISABLED: ustaw WIFI_SSID w secrets.h");
         return;
     }
 

@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#include "app_config.h"
+#include "config.h"
 #include "pins.h"
 #include "version.h"
 #include "core/AppState.h"
@@ -58,14 +58,6 @@ void printHealthDiagnostics() {
                   appState.timeValid ? "valid" : "waiting");
 }
 
-void setPlaceholderData() {
-    appState.weatherValid = true;
-    appState.outsideTemp = 18.5F;
-    appState.weatherText = "Pogodnie (dane testowe)";
-    appState.todayMin = 12.0F;
-    appState.todayMax = 21.0F;
-}
-
 }  // namespace
 
 void setup() {
@@ -80,11 +72,10 @@ void setup() {
     wifiService.begin();
     timeService.begin();
     weatherService.begin();
-    radioService.begin();
-    boilerService.begin();
+    radioService.begin(appState);
+    boilerService.begin(appState);
 
-    ui.begin(display, touch, navigation);
-    setPlaceholderData();
+    ui.begin(display, touch, navigation, radioService, boilerService);
 }
 
 void loop() {

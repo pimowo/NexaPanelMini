@@ -9,6 +9,7 @@ enum class ScreenId : uint8_t {
 };
 
 enum class MainSection : uint8_t {
+    NONE,
     RADIO,
     HOME,
     BOILER
