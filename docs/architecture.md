@@ -1,27 +1,74 @@
 # Architektura NexaPanel Mini
 
-## Założenia
+NexaPanel Mini jest samodzielnym firmware ESP8266. Folder `reference/` jest
+materiałem historycznym i nie jest zależnością kompilacji.
 
-NexaPanel Mini jest osobnym firmware, ale ma korzystać z istniejących i sprawdzonych rozwiązań z NexaPanel.
+## Warstwy
 
-Warstwy:
+### Hardware
 
-1. Hardware / display
-2. UI
-3. AppState
-4. Services
-5. Transport / integracje
+- `DisplayDriver` - konfiguracja i dostęp do TFT ILI9341,
+- `TouchDriver` - odczyt i mapowanie XPT2046,
+- `pins.h` - mapowanie GPIO oraz ostrzeżenia bootstrapów.
 
-UI nie powinno znać szczegółów HTTP, WebSocket, MQTT ani Home Assistant.
-Usługi aktualizują `AppState`.
-UI wyświetla stan i generuje akcje użytkownika.
+### Core
 
-## Najważniejsza zasada
+- `AppState` - wspólny stan czasu, pogody, radia, kotła i Wi-Fi,
+- `Navigation` - bieżący ekran i aktywna sekcja,
+- `EventBus` - istniejąca, mała abstrakcja zdarzeń; obecna pętla używa rewizji
+  stanu i cache ekranów zamiast centralnego dispatchera zdarzeń.
 
-Nie kopiować ślepo całego NexaPanel.
+### Services
 
-Najpierw:
-- przeanalizować,
-- ustalić kontrakty,
-- przenieść tylko potrzebne fragmenty,
-- zachować zachowanie i kompatybilność.
+- `WifiService`,
+- `TimeService`,
+- `WeatherService`,
+- `RadioService`,
+- `BoilerService`.
+
+Usługi są właścicielami komunikacji sieciowej. Aktualizują `AppState`, a UI nie
+zna hostów, topiców ani szczegółów bibliotek transportowych.
+
+### UI
+
+- `UiManager` - pętla dotyku, auto-home, nawigacja i routing odświeżania,
+- `HomeScreen`,
+- `RadioScreen`,
+- `BoilerScreen`,
+- `WeatherScreen`,
+- `BottomBar`.
+
+## Przepływ danych
+
+```text
+Wi-Fi / NTP / Open-Meteo / WebSocket / MQTT
+						  |
+					  Services
+						  |
+					  AppState
+						  |
+						  UI
+```
+
+Akcje użytkownika przepływają tak:
+
+```text
+Touch -> UiManager -> Navigation / RadioService / BoilerService
+```
+
+## Pętla główna
+
+`setup()` inicjalizuje sprzęt, usługi i UI. `loop()` wywołuje aktualizacje usług,
+UI i diagnostykę, po czym wykonuje krótkie opóźnienie 5 ms. Timeouty Wi-Fi,
+MQTT, yoRadio, pogody i auto-home są nieblokujące. Sam request pogody jest
+krótką operacją HTTP kontrolowaną timeoutem klienta.
+
+## Renderowanie
+
+Ekran jest rysowany ponownie przy zmianie nawigacji. Przy pozostaniu na ekranie
+`update()` porównuje dane z cache i odświeża tylko zmienione regiony. Dolna
+belka ma własny cache aktywnej sekcji. Projekt nie alokuje dużego framebufferu;
+rysuje bezpośrednio do TFT.
+
+Auto-home po 30 sekundach bez nowego dotyku wraca z każdego ekranu poza HOME do
+HOME. Nowy dotyk resetuje licznik.

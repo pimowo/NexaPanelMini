@@ -1,4 +1,12 @@
-# Analiza NexaPanel dla NexaPanel Mini
+# Analiza referencyjnego NexaPanel
+
+> Materiał historyczny i projektowy. Opisuje wcześniejszą analizę folderu
+> `reference/NexaPanel/`; nie jest specyfikacją aktualnego runtime NexaPanel
+> Mini i nie jest używany podczas builda. Folder `reference/` jest ignorowany
+> przez Git.
+
+Aktualną dokumentacją firmware są README oraz pliki w `docs/`. Poniższe notatki
+zachowano jako ślad decyzji przy przenoszeniu kontraktów.
 
 Analiza dotyczy kodu w `reference/NexaPanel/`. Projekt referencyjny pozostaje niezmieniony. Wartości poufne zapisane w jego `include/config.h` nie są powielane w tym raporcie.
 
@@ -99,51 +107,9 @@ Analiza dotyczy kodu w `reference/NexaPanel/`. Projekt referencyjny pozostaje ni
 - `D8/GPIO15` jest pinem bootstrap wymagającym LOW podczas startu. TFT CS na D8 jest typowym, ale ryzykownym połączeniem, jeśli moduł lub rezystory wymuszą HIGH.
 - `D3/GPIO0` i `D4/GPIO2` muszą być HIGH przy starcie. Obciążenie backlight na D3 albo SD CS na D4 może uniemożliwić normalny boot. `D0/GPIO16` nie obsługuje zwykłych przerwań GPIO, ale XPT2046 może być odpytywany; IRQ nie powinien być wymagany do działania.
 - Repozytorium zawiera tylko deklarowane założenie pinów i ostrzeżenie o rewizji. Nie zawiera numeru rewizji, schematu Nettigo ani opisu `BL MOD`; publiczne wyszukiwanie nie dało jednoznacznego dokumentu dla tej konkretnej płytki. Dlatego D3 jako sterowanie podświetleniem oraz całe mapowanie pozostają warunkowe do kontroli ciągłości/oznaczeń PCB. Firmware nie powinien aktywnie sterować D3 przed tym potwierdzeniem.
-- Nazwy `PIN_SPI_SCK/MISO/MOSI` w szkielecie kolidują z makrami rdzenia ESP8266 i obecnie zatrzymują kompilację.
+## Aktualny kontrakt
 
-## E. Proponowany kontrakt komunikacyjny
-
-### Stan i kierunek przepływu
-
-- Usługi są jedynymi właścicielami transportu i aktualizują `AppState`.
-- UI czyta `const AppState` i emituje intencje użytkownika do usług; nie zna hostów, topików ani bibliotek sieciowych.
-- Dane zewnętrzne powinny mieć co najmniej `received`, `valid` i znacznik czasu ostatniej aktualizacji. Po utracie sesji dane chwilowe są unieważniane zamiast prezentowane jako świeże.
-
-### yoRadio
-
-- WebSocket `/ws`; po CONNECT wysłać `getindex=1`.
-- TX: dokładnie `prev=1`, `toggle=1`, `next=1`, `volm=1`, `volp=1`.
-- RX: JSON `{ "payload": [{ "id": "...", "value": ... }] }`; Mini potrzebuje `nameset`, `meta`, `playerwrap`, `volume`, opcjonalnie `bitrate` i `fmt`.
-- Komendy dozwolone dopiero po połączeniu i pierwszej poprawnej ramce.
-
-### Kocioł i pogoda
-
-- MQTT z bazą konfiguracyjną identyczną semantycznie jak w NexaPanel.
-- Subskrypcje Mini: `/ha/state/weather`, `/ha/state/climate`, `/ha/state/boiler_power`; opcjonalnie `/ha/state/windows` tylko jeśli później zostanie zaakceptowane w UI.
-- Publikacje Mini: cztery istniejące topiki `/ha/command/...` i istniejące payloady.
-- Snapshot: po połączeniu publikować na `/ha/snapshot/request`, bez retained; stany źródłowe powinny być retained albo gateway HA powinien odpowiedzieć snapshotem.
-- Obecny kontrakt nie zawiera opisu pogody ani prognozy dziennej/5-dniowej. Przed etapem pogody trzeba rozszerzyć producenta danych HA i uzgodnić jeden ograniczony JSON, zamiast pobierać lub wymyślać API po stronie UI.
-
-## F. Plan etapów implementacji
-
-1. Fundament sprzętowy i UI: build ESP8266, ILI9341 240x320, współdzielone SPI, mapowanie XPT2046 z parametrami kalibracji, HOME z danymi zastępczymi, trzy ekrany, stała belka z pressed, NTP i diagnostyka Serial.
-2. Stabilne Wi-Fi i konfiguracja: reconnect/backoff, trwały profil z CRC, oszczędny panel WWW i diagnostyka heap.
-3. yoRadio: port istniejącego klienta WebSocket i komplet wymaganych kontrolek.
-4. MQTT/HA i kocioł: port ograniczonego kontraktu, stan kotła i wymagane sterowanie.
-5. Pogoda: uzgodnienie oraz implementacja brakującego kontraktu prognozy dziś/5 dni, cache i widok szczegółowy.
-6. Utrzymanie 24/7: firmware OTA ESP8266, watchdog/recovery, testy długotrwałe, pomiary heap/fragmentacji i obsługa błędów.
-7. Finalizacja sprzętu: pomiar osi dotyku, wpisanie kalibracji, kontrola strapów przy zimnym starcie i potwierdzenie rewizji PCB oraz `BL MOD`.
-
-## G. Lista plików zmienianych w etapie 1
-
-- `platformio.ini` - jednoznaczna konfiguracja SPI TFT.
-- `include/app_config.h` - NTP, Wi-Fi, kalibracja dotyku, timeouty UI i diagnostyki.
-- `include/pins.h` - usunięcie kolizji nazw i opis ryzyk bootstrap.
-- `include/core/AppState.h` - ograniczone dane diagnostyczne i stan czasu bez nowych integracji.
-- `include/display/TouchDriver.h`, `src/display/TouchDriver.cpp` - mapowanie, kalibracja i surowe współrzędne diagnostyczne.
-- `include/ui/BottomBar.h`, `src/ui/BottomBar.cpp` - hit-test i pressed.
-- `include/ui/UiManager.h`, `src/ui/UiManager.cpp` - pierwszy render, touch edge, pressed i okresowe odświeżanie.
-- `src/services/WifiService.cpp` i jego nagłówek - minimalne połączenie potrzebne NTP.
-- `src/services/TimeService.cpp` i jego nagłówek - NTP Polska, stan synchronizacji i formatowanie.
-- `src/main.cpp` - kolejność startu, dane zastępcze i diagnostyka Serial.
-- Ewentualnie ekrany `src/ui/*.cpp` tylko dla usunięcia kosztownych tymczasowych `String` albo korekty layoutu wykrytej buildem.
+Rzeczywiste, wdrożone kontrakty są opisane w [docs/communication.md](communication.md).
+W szczególności aktualny firmware pobiera pogodę bezpośrednio z Open-Meteo,
+pokazuje trzy przyszłe dni i używa aktywnego kontraktu MQTT opartego o bazę
+`kuchnia-panel`. Nie należy używać tego dokumentu jako listy przyszłych etapów.
