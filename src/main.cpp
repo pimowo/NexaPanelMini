@@ -69,6 +69,19 @@ void setup() {
     display.begin();
     touch.begin();
 
+    const bool forceCalibration =
+        touch.detectBootCalibrationHold(display, AppConfig::TOUCH_BOOT_HOLD_MS);
+    bool hasCalibration = !forceCalibration && touch.loadCalibration();
+    if (!hasCalibration) {
+        while (!touch.calibrate(display)) {
+            Serial.println("TOUCH XPT2046: calibration failed, retrying");
+        }
+        hasCalibration = true;
+    }
+    if (hasCalibration) {
+        display.tft().fillRect(0, 0, 240, 320, TFT_BLACK);
+    }
+
     wifiService.begin();
     timeService.begin();
     weatherService.begin();

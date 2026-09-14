@@ -28,3 +28,8 @@ D3/GPIO0 jest pinem wyboru trybu boot.
 
 Podświetlenie LCD jest sprzętowo zasilane na stałe i nie ma linii sterowania z
 ESP8266 w aktualnym układzie.
+
+## Kalibracja dotyku
+
+Ponowną kalibrację XPT2046 można wymusić bez dodatkowego GPIO: przytrzymanie
+dotyku przez około 3 sekundy podczas startu uruchamia tryb kalibracji.

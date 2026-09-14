@@ -8,7 +8,7 @@ materiałem historycznym i nie jest zależnością kompilacji.
 ### Hardware
 
 - `DisplayDriver` - konfiguracja i dostęp do TFT ILI9341,
-- `TouchDriver` - odczyt i mapowanie XPT2046,
+- `TouchDriver` - odczyt XPT2046, filtracja próbek, kalibracja i mapowanie,
 - `pins.h` - mapowanie GPIO oraz ostrzeżenia bootstrapów.
 
 ### Core
@@ -79,6 +79,9 @@ alokuje dużego framebufferu; rysuje bezpośrednio do TFT.
 
 Auto-home po 30 sekundach bez nowego dotyku wraca z każdego ekranu poza HOME do
 HOME. Nowy dotyk resetuje licznik.
+
+Kalibracja dotyku działa jako tryb startowy uruchamiany przed UI. Parametry
+mapowania są zapisywane do EEPROM i walidowane przy starcie.
 
 Na ekranie `BOILER_TEMPERATURE` przyciski `-` i `+` korzystają z nieblokującego
 hold/repeat (500 ms / 225 ms) w pętli `UiManager`.

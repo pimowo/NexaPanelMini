@@ -29,6 +29,28 @@
 			"problemMatcher": [
 				"$gcc"
 			]
+		},
+		{
+			"label": "Stage2 Git Commit",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/d",
+				"/c",
+				"git add .vscode/tasks.json README.md docs/architecture.md docs/gpio.md docs/screens.md include/config.h include/display/TouchDriver.h src/display/TouchDriver.cpp src/main.cpp src/ui/BoilerScreen.cpp && git commit -m \"Add persistent XPT2046 calibration and touch stabilization\""
+			],
+			"isBackground": false
+		},
+		{
+			"label": "Stage2 Git Add",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/d",
+				"/c",
+				"git add .vscode/tasks.json README.md docs/architecture.md docs/gpio.md docs/screens.md include/config.h include/display/TouchDriver.h src/display/TouchDriver.cpp src/main.cpp src/ui/BoilerScreen.cpp"
+			],
+			"isBackground": false
 		}
 	]
 }

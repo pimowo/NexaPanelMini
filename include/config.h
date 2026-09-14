@@ -128,10 +128,11 @@ constexpr const char* NTP_SERVER_TERTIARY = "time.cloudflare.com";
 // Kalibracja dotyku
 // ============================================================
 
-// Kalibracja kontrolera XPT2046 dla LCD rotation=0. Zmieniaj tylko po
-// rzeczywistym pomiarze osi dotyku na docelowym panelu.
-constexpr int16_t TOUCH_X_MIN = 400;
-constexpr int16_t TOUCH_X_MAX = 3550;
-constexpr int16_t TOUCH_Y_MIN = 550;
-constexpr int16_t TOUCH_Y_MAX = 3700;
+// Parametry jakości i walidacji kalibracji XPT2046.
+constexpr uint8_t TOUCH_READ_SAMPLES = 5;
+constexpr uint8_t TOUCH_CALIBRATION_SAMPLES = 9;
+constexpr unsigned long TOUCH_BOOT_HOLD_MS = 3000UL;
+constexpr unsigned long TOUCH_RELEASE_TIMEOUT_MS = 5000UL;
+constexpr int16_t TOUCH_MIN_AXIS_SPAN = 800;
+constexpr int16_t TOUCH_CENTER_TOLERANCE_PX = 26;
 }

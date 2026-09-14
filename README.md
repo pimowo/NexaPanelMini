@@ -52,10 +52,20 @@ Widok pokazuje dokładnie trzy przyszłe dni: pełny polski dzień tygodnia z da
 ikonę oraz MAX/MIN. Dane wejściowe zawierają także dzień bieżący używany na
 ekranie HOME.
 
+### TOUCH CALIBRATION
+
+- kalibracja XPT2046 wykonywana automatycznie przy pierwszym uruchomieniu,
+- zapis parametrów kalibracji do EEPROM (z walidacją i checksum),
+- wymuszenie ponownej kalibracji przez przytrzymanie dotyku ok. 3 s podczas
+	bootu,
+- w normalnej pracy odczyt dotyku używa mediany z wielu próbek dla stabilności.
+
 ### Auto-home
 
 Każdy ekran poza HOME wraca do HOME po 30 sekundach bez nowego dotyku. Każdy
 nowy dotyk resetuje timer.
+
+Tryb kalibracji jest trybem startowym i nie używa auto-home ani dolnej belki.
 
 ## Dolna belka
 
@@ -133,7 +143,8 @@ Utwórz go na podstawie [include/secrets.example.h](include/secrets.example.h).
 
 Zwykłe ustawienia użytkownika i systemu: hosty, porty, ścieżka WebSocket,
 współrzędne pogody, timeouty, reconnect/backoff, timezone, serwery NTP oraz
-kalibracja dotyku. Plik zawiera osobne sekcje MQTT dla kotła i panelu.
+parametry jakości kalibracji dotyku. Plik zawiera osobne sekcje MQTT dla
+kotła i panelu.
 
 ### `include/pins.h`
 

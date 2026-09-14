@@ -64,11 +64,22 @@ Dedykowany ekran ręcznej zmiany temperatury zadanej kotła:
 - po nadejściu stanu MQTT wartość z `AppState` nadpisuje lokalny podgląd,
 - szeroki przycisk `<- WRÓĆ` na dole prowadzi do `BOILER`.
 
+## TOUCH_CALIBRATION
+
+Tryb startowy kalibracji XPT2046 (poza standardową nawigacją ekranów):
+
+- uruchamia się automatycznie, gdy brak poprawnej kalibracji w EEPROM,
+- można go wymusić przez przytrzymanie dotyku przez ok. 3 sekundy podczas
+	startu,
+- zbiera 5 punktów kalibracyjnych metodą dotknij-puść,
+- mapowanie osi jest wykrywane automatycznie (swap/invert),
+- po zapisaniu kalibracji wraca do normalnego startu UI.
+
 ## Auto-home
 
 Każdy ekran poza HOME wraca do HOME po 30 sekundach bez nowego dotyku. Nowy
 dotyk resetuje licznik. Mechanizm jest nieblokujący i działa w pętli
-`UiManager`.
+`UiManager`. Nie dotyczy trybu `TOUCH_CALIBRATION`.
 
 ## Odświeżanie
 
