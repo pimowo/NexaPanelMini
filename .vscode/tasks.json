@@ -29,26 +29,6 @@
 			"problemMatcher": [
 				"$gcc"
 			]
-		},
-		{
-			"label": "Git Final Precheck",
-			"type": "shell",
-			"command": "powershell",
-			"args": [
-				"-NoProfile",
-				"-Command",
-				"git status --short --branch; Write-Host '---'; git diff --check; Write-Host '---'; git ls-files include/secrets.h include/secrets.example.h include/config.h include/pins.h include/app_config.h"
-			]
-		},
-		{
-			"label": "Git Commit Cleanup",
-			"type": "shell",
-			"command": "git",
-			"args": [
-				"commit",
-				"-am",
-				"Remove temporary Git helper tasks from VS Code tasks"
-			]
 		}
 	]
 }
