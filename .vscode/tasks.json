@@ -31,31 +31,23 @@
 			]
 		},
 		{
-			"label": "Git Quick Status",
+			"label": "Git Final Precheck",
 			"type": "shell",
-			"command": "git",
+			"command": "powershell",
 			"args": [
-				"status",
-				"--short",
-				"--branch"
+				"-NoProfile",
+				"-Command",
+				"git status --short --branch; Write-Host '---'; git diff --check; Write-Host '---'; git ls-files include/secrets.h include/secrets.example.h include/config.h include/pins.h include/app_config.h"
 			]
 		},
 		{
-			"label": "Git Diff Check",
+			"label": "Git Commit Cleanup",
 			"type": "shell",
 			"command": "git",
 			"args": [
-				"diff",
-				"--check"
-			]
-		},
-		{
-			"label": "Git Add All",
-			"type": "shell",
-			"command": "git",
-			"args": [
-				"add",
-				"-A"
+				"commit",
+				"-am",
+				"Remove temporary Git helper tasks from VS Code tasks"
 			]
 		}
 	]
