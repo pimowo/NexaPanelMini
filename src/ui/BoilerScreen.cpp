@@ -94,7 +94,7 @@ void BoilerScreen::update(DisplayDriver& display, const AppState& state) {
         drawTargetTemperature(display, state);
     }
     if (!cacheValid_ || online_ != state.boilerOnline ||
-        comfort_ != state.boilerComfortMode) {
+        preset_ != state.boilerPreset) {
         drawPreset(display, state);
     }
     cacheState(state);
@@ -164,9 +164,9 @@ void BoilerScreen::drawPreset(DisplayDriver& display, const AppState& state,
     auto& tft = display.tft();
     if (clearRegion) tft.fillRect(4, PRESET_Y, 232, 44, Theme::BG);
     const uint16_t comfortColor = !state.boilerOnline ? Theme::DIM
-        : state.boilerComfortMode ? SUN_YELLOW : Theme::DIM;
+        : state.boilerPreset == BoilerPreset::COMFORT ? SUN_YELLOW : Theme::DIM;
     const uint16_t sleepColor = !state.boilerOnline ? Theme::DIM
-        : state.boilerComfortMode ? Theme::DIM : SLEEP_BLUE;
+        : state.boilerPreset == BoilerPreset::SLEEP ? SLEEP_BLUE : Theme::DIM;
     tft.drawRect(4, PRESET_Y, 112, 44, comfortColor);
     tft.drawRect(124, PRESET_Y, 112, 44, sleepColor);
     drawSunIcon(tft, 25, PRESET_Y + 22, comfortColor);
@@ -182,7 +182,7 @@ void BoilerScreen::cacheState(const AppState& state) {
     powerOn_ = state.boilerPowerOn;
     heating_ = state.boilerEnabled;
     hvacHeat_ = state.boilerHvacHeat;
-    comfort_ = state.boilerComfortMode;
+    preset_ = state.boilerPreset;
     currentTemperature_ = state.boilerCurrentTemp;
     targetTemperature_ = state.boilerTargetTemp;
     revision_ = state.boilerRevision;

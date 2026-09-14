@@ -8,6 +8,12 @@ struct WeatherDay {
     float tempMax = NAN;
 };
 
+enum class BoilerPreset : uint8_t {
+    MANUAL,
+    COMFORT,
+    SLEEP
+};
+
 struct AppState {
     uint32_t timeRevision = 0;
     uint32_t weatherRevision = 0;
@@ -42,7 +48,7 @@ struct AppState {
     bool boilerEnabled = false;
     bool boilerPowerOn = false;
     bool boilerHvacHeat = false;
-    bool boilerComfortMode = false;
+    BoilerPreset boilerPreset = BoilerPreset::MANUAL;
     float boilerCurrentTemp = NAN;
     float boilerTargetTemp = NAN;
 

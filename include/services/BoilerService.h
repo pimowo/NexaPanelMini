@@ -1,6 +1,7 @@
 #pragma once
 #include <MQTT.h>
 #include <ESP8266WiFi.h>
+#include <limits.h>
 #include "core/AppState.h"
 
 class BoilerService {
@@ -26,9 +27,17 @@ private:
     void handleMessage(String& topic, String& payload);
     void parseClimate(const String& payload);
     void parseBoilerPower(String payload);
+    void parsePanelRestartCommand(String payload);
     bool publishCommand(const char* topic, const char* payload);
     bool buildTopics();
-    bool buildTopic(char* target, size_t size, const char* suffix);
+    bool buildBoilerTopic(char* target, size_t size, const char* suffix);
+    bool buildPanelTopic(char* target, size_t size, const char* suffix);
+    bool buildDiscoveryTopic(char* target, size_t size,
+                             const char* component,
+                             const char* objectId);
+    bool publishPanelAvailabilityOnline();
+    bool publishPanelDiscovery();
+    void publishPanelTelemetry(bool force);
     void scheduleRetry();
 
     struct Topics {
@@ -39,6 +48,15 @@ private:
         char commandPresetMode[96]{};
         char commandTemperature[96]{};
         char commandBoilerPower[96]{};
+        char panelAvailability[96]{};
+        char panelRssiState[96]{};
+        char panelUptimeState[96]{};
+        char panelFirmwareState[96]{};
+        char panelRestartSet[96]{};
+        char discoveryRssi[128]{};
+        char discoveryUptime[128]{};
+        char discoveryFirmware[128]{};
+        char discoveryRestart[128]{};
     } topics_;
 
     AppState* state_ = nullptr;
@@ -47,6 +65,10 @@ private:
     Phase phase_ = Phase::IDLE;
     uint32_t retryStartedMs_ = 0;
     uint32_t retryDelayMs_ = 0;
+    uint32_t nextPanelTelemetryMs_ = 0;
     uint8_t backoffStep_ = 0;
     bool wifiWasConnected_ = false;
+    bool restartRequested_ = false;
+    int lastPublishedRssi_ = INT_MIN;
+    uint32_t lastPublishedUptimeS_ = UINT32_MAX;
 };

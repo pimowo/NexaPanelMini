@@ -53,10 +53,10 @@ Po 60 sekundach ciszy wysyłane jest ponownie `getindex=1`. Timeout połączenia
 timeout pierwszych danych i timeout odświeżenia powodują rozłączenie oraz
 reconnect z backoffem 1, 2, 5, 10 i 30 s.
 
-## Boiler MQTT
+## MQTT kotła
 
 `BoilerService` używa MQTT przez bibliotekę `256dpi/MQTT`. Wszystkie topici są
-budowane jako `MQTT_BASE_TOPIC + suffix`, gdzie obecna baza to świadomie
+budowane jako `BOILER_MQTT_BASE_TOPIC + suffix`, gdzie obecna baza to świadomie
 zachowane `kuchnia-panel` dla kompatybilności z istniejącym brokerem i
 automatyzacją.
 
@@ -72,6 +72,14 @@ Stan klimatu jest JSON-em z polami `hvac_mode`, `preset_mode`, `hvac_action`,
 `target_temperature` i `current_temperature`. Stan zasilania kotła to payload
 `ON` lub `OFF` na `kuchnia-panel/ha/state/boiler_power`.
 
+`preset_mode` jest źródłem prawdy dla stanu presetu UI:
+
+- `comfort` -> COMFORT,
+- `sleep` -> SLEEP,
+- `manual` (lub inny nierozpoznany preset) -> MANUAL.
+
+Stan MANUAL nie jest wykrywany heurystyką temperatury.
+
 Komendy:
 
 - `kuchnia-panel/ha/command/climate/hvac_mode`: `heat` albo `off`,
@@ -81,3 +89,44 @@ Komendy:
 - `kuchnia-panel/ha/command/boiler_power`: `ON` albo `OFF`.
 
 Połączenie MQTT ma keepalive 15 s i reconnect z backoffem od 1 s do 30 s.
+
+## MQTT NexaPanel Mini / Home Assistant Discovery
+
+Panel ma osobny namespace MQTT:
+
+- baza: `PANEL_MQTT_BASE_TOPIC = nexapanel-mini`.
+
+Topici stanu panelu:
+
+- `nexapanel-mini/status` (availability),
+- `nexapanel-mini/rssi/state`,
+- `nexapanel-mini/uptime/state`,
+- `nexapanel-mini/firmware/state`.
+
+Topic komend panelu:
+
+- `nexapanel-mini/restart/set` z payload `PRESS`.
+
+### Availability i LWT
+
+Klient MQTT ustawia LWT na `nexapanel-mini/status` z payload `offline`
+(retained, QoS 1). Po poprawnym połączeniu panel publikuje `online`
+(retained, QoS 1). Dzięki temu HA widzi poprawny stan urządzenia także po
+nieoczekiwanym zerwaniu połączenia.
+
+### Discovery
+
+Discovery config jest publikowany jako retained pod topicami:
+
+- `homeassistant/sensor/nexapanel-mini/rssi/config`,
+- `homeassistant/sensor/nexapanel-mini/uptime/config`,
+- `homeassistant/sensor/nexapanel-mini/firmware/config`,
+- `homeassistant/button/nexapanel-mini/restart/config`.
+
+Publikacja discovery następuje po poprawnym połączeniu MQTT (oraz po reconnect).
+Nie jest wykonywana co pętlę.
+
+### Telemetria panelu
+
+RSSI i uptime są publikowane po połączeniu oraz okresowo co 30 s.
+Firmware jest publikowane jako retained przy połączeniu.

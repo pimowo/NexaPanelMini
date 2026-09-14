@@ -36,7 +36,7 @@ private:
     bool powerOn_ = false;
     bool heating_ = false;
     bool hvacHeat_ = false;
-    bool comfort_ = false;
+    BoilerPreset preset_ = BoilerPreset::MANUAL;
     float currentTemperature_ = NAN;
     float targetTemperature_ = NAN;
     bool cacheValid_ = false;

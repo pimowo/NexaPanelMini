@@ -14,9 +14,7 @@ materiałem historycznym i nie jest zależnością kompilacji.
 ### Core
 
 - `AppState` - wspólny stan czasu, pogody, radia, kotła i Wi-Fi,
-- `Navigation` - bieżący ekran i aktywna sekcja,
-- `EventBus` - istniejąca, mała abstrakcja zdarzeń; obecna pętla używa rewizji
-  stanu i cache ekranów zamiast centralnego dispatchera zdarzeń.
+- `Navigation` - bieżący ekran i aktywna sekcja.
 
 ### Services
 
@@ -28,6 +26,13 @@ materiałem historycznym i nie jest zależnością kompilacji.
 
 Usługi są właścicielami komunikacji sieciowej. Aktualizują `AppState`, a UI nie
 zna hostów, topiców ani szczegółów bibliotek transportowych.
+
+`BoilerService` pełni dwie role MQTT na jednym połączeniu:
+
+- komunikacja kotła (stan i komendy),
+- diagnostyka panelu i Home Assistant MQTT Discovery.
+
+Role używają oddzielnych namespace topiców.
 
 ### UI
 

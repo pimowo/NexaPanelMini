@@ -33,6 +33,15 @@ Ekran pokazuje stan zasilania, HVAC, status grzania/płomienia, temperaturę
 aktualną i zadaną oraz tryb comfort/sleep. Sterowanie wysyła komendy przez
 `BoilerService`.
 
+Renderowanie presetu:
+
+- COMFORT: słońce aktywne (żółte), księżyc szary,
+- SLEEP: księżyc aktywny (niebieski), słońce szare,
+- MANUAL: oba preset icons szare.
+
+Stan MANUAL wynika z rzeczywistego `preset_mode` z MQTT, bez heurystyki
+temperatury.
+
 ## Auto-home
 
 Każdy ekran poza HOME wraca do HOME po 30 sekundach bez nowego dotyku. Nowy

@@ -31,7 +31,7 @@ końcowy kontraktu MQTT kotła.
 - HVAC `heat/off`,
 - płomień jako status grzania,
 - temperatura aktualna i zadana,
-- tryby `comfort` i `sleep`.
+- tryby `comfort`, `sleep` i stan manualny (oba presety nieaktywne).
 
 ### WEATHER_DETAILS
 
@@ -73,6 +73,28 @@ prezentuje stan oraz wysyła intencje użytkownika.
 - yoRadio WebSocket pod `/ws`,
 - MQTT dla stanu i sterowania kotłem.
 
+## Home Assistant MQTT Discovery
+
+Panel publikuje własne MQTT Discovery jako osobne urządzenie diagnostyczne
+`NexaPanel Mini` w namespace `nexapanel-mini`, niezależnie od topiców kotła.
+
+Encje Discovery:
+
+- `Wi-Fi RSSI` (sensor, dBm, diagnostic),
+- `Uptime` (sensor, sekundy, diagnostic),
+- `Firmware` (sensor, diagnostic),
+- `Restart` (button, komenda `PRESS`).
+
+Availability panelu:
+
+- topic: `nexapanel-mini/status`,
+- payload online: `online` (retained),
+- payload offline: `offline` przez LWT (retained).
+
+Discovery config jest publikowany jako retained po każdym poprawnym połączeniu
+MQTT (bez publikowania co pętlę). Telemetria RSSI i uptime jest publikowana po
+połączeniu i okresowo co 30 s.
+
 Szczegóły kontraktów znajdują się w [docs/communication.md](docs/communication.md).
 
 ## Konfiguracja
@@ -96,7 +118,7 @@ Utwórz go na podstawie [include/secrets.example.h](include/secrets.example.h).
 
 Zwykłe ustawienia użytkownika i systemu: hosty, porty, ścieżka WebSocket,
 współrzędne pogody, timeouty, reconnect/backoff, timezone, serwery NTP oraz
-kalibracja dotyku.
+kalibracja dotyku. Plik zawiera osobne sekcje MQTT dla kotła i panelu.
 
 ### `include/pins.h`
 
