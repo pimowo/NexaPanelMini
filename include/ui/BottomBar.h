@@ -9,6 +9,7 @@ public:
     static constexpr int16_t Y = 320 - HEIGHT;
 
     void update(DisplayDriver& display, MainSection active);
+    void invalidate();
     bool handleTouch(const TouchPoint& point, Navigation& navigation);
     bool sectionAt(const TouchPoint& point, MainSection& section) const;
 

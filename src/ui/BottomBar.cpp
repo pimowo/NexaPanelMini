@@ -43,6 +43,11 @@ void BottomBar::update(DisplayDriver& display, MainSection active) {
     lastActiveSection_ = active;
 }
 
+void BottomBar::invalidate() {
+    rendered_ = false;
+    lastActiveSection_ = MainSection::NONE;
+}
+
 void BottomBar::drawSegment(DisplayDriver& display, MainSection section,
                             bool active) {
     auto& tft = display.tft();

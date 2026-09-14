@@ -4,13 +4,13 @@
 
 namespace {
 constexpr int16_t MINUS_X = 4;
-constexpr int16_t MINUS_Y = 84;
-constexpr int16_t MINUS_W = 72;
-constexpr int16_t MINUS_H = 132;
-constexpr int16_t PLUS_X = 164;
-constexpr int16_t PLUS_Y = 84;
-constexpr int16_t PLUS_W = 72;
-constexpr int16_t PLUS_H = 132;
+constexpr int16_t MINUS_Y = 126;
+constexpr int16_t MINUS_W = 56;
+constexpr int16_t MINUS_H = 44;
+constexpr int16_t PLUS_X = 180;
+constexpr int16_t PLUS_Y = 126;
+constexpr int16_t PLUS_W = 56;
+constexpr int16_t PLUS_H = 44;
 
 constexpr int16_t TARGET_X = 84;
 constexpr int16_t TARGET_Y = 116;
@@ -21,6 +21,9 @@ constexpr int16_t BACK_X = 30;
 constexpr int16_t BACK_Y = 272;
 constexpr int16_t BACK_W = 180;
 constexpr int16_t BACK_H = 40;
+
+constexpr uint16_t MINUS_BLUE = 0x04FF;
+constexpr uint16_t PLUS_RED = 0xF800;
 
 bool sameTemperature(float first, float second) {
     return isnan(first) == isnan(second) &&
@@ -85,14 +88,16 @@ void BoilerTemperatureScreen::drawStatic(DisplayDriver& display) {
 
 void BoilerTemperatureScreen::drawControls(DisplayDriver& display) {
     auto& tft = display.tft();
+    const int16_t minusCenterX = MINUS_X + MINUS_W / 2;
+    const int16_t plusCenterX = PLUS_X + PLUS_W / 2;
+    const int16_t centerY = MINUS_Y + MINUS_H / 2;
 
     tft.drawRect(MINUS_X, MINUS_Y, MINUS_W, MINUS_H, Theme::DIM);
     tft.drawRect(PLUS_X, PLUS_Y, PLUS_W, PLUS_H, Theme::DIM);
 
-    display.drawUtf8("-", MINUS_X + MINUS_W / 2, MINUS_Y + MINUS_H / 2, 4,
-                     Theme::TEXT, Theme::BG, MC_DATUM);
-    display.drawUtf8("+", PLUS_X + PLUS_W / 2, PLUS_Y + PLUS_H / 2, 4,
-                     Theme::TEXT, Theme::BG, MC_DATUM);
+    tft.fillRect(minusCenterX - 14, centerY - 2, 28, 5, MINUS_BLUE);
+    tft.fillRect(plusCenterX - 14, centerY - 2, 28, 5, PLUS_RED);
+    tft.fillRect(plusCenterX - 2, centerY - 14, 5, 28, PLUS_RED);
 
     tft.drawRect(BACK_X, BACK_Y, BACK_W, BACK_H, Theme::DIM);
     display.drawUtf8("<- WRÓĆ", BACK_X + BACK_W / 2, BACK_Y + BACK_H / 2,

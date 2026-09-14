@@ -64,7 +64,12 @@ void UiManager::update(AppState& state) {
     }
 
     if (navigation_->currentScreen() != lastScreen_) {
-        lastScreen_ = navigation_->currentScreen();
+        const ScreenId newScreen = navigation_->currentScreen();
+        if ((lastScreen_ == ScreenId::BOILER_TEMPERATURE) !=
+            (newScreen == ScreenId::BOILER_TEMPERATURE)) {
+            bottomBar_.invalidate();
+        }
+        lastScreen_ = newScreen;
         redrawPending_ = true;
     }
 
