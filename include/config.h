@@ -25,7 +25,6 @@ namespace AppConfig {
 // ============================================================
 // Identyfikacja urządzenia
 // ============================================================
-constexpr const char* DEVICE_NAME = "NexaPanelMini";
 constexpr const char* HOSTNAME = "nexapanel-mini";
 
 // ============================================================
@@ -96,8 +95,6 @@ constexpr unsigned long UI_VOLUME_HOLD_REPEAT_MS = 225UL;
 // ============================================================
 // Timeouty i reconnect
 // ============================================================
-
-constexpr unsigned long NTP_RESYNC_MS = 6UL * 60UL * 60UL * 1000UL;
 constexpr unsigned long WEATHER_REFRESH_MS = 15UL * 60UL * 1000UL;
 constexpr unsigned long WEATHER_RETRY_MS = 60000UL;
 constexpr unsigned long WIFI_CONNECT_TIMEOUT_MS = 15000UL;
