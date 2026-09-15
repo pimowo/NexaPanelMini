@@ -29,14 +29,27 @@ void drawPowerIcon(TFT_eSPI& tft, int16_t cx, int16_t cy,
 
 void drawFlameIcon(TFT_eSPI& tft, int16_t cx, int16_t cy,
                    uint16_t color) {
-    // Klasyczny płomień: smukły czubek i szersza podstawa z bocznymi załamaniami.
-    tft.fillTriangle(cx, cy - 18, cx - 5, cy - 7, cx + 5, cy - 7, color);
-    tft.fillTriangle(cx - 5, cy - 7, cx - 15, cy + 4, cx - 2, cy + 8, color);
-    tft.fillTriangle(cx + 5, cy - 7, cx + 15, cy + 4, cx + 2, cy + 8, color);
-    tft.fillTriangle(cx - 14, cy + 3, cx + 14, cy + 3, cx, cy + 16, color);
-    tft.fillTriangle(cx - 9, cy + 6, cx, cy - 2, cx + 2, cy + 7, color);
-    tft.fillTriangle(cx + 9, cy + 6, cx, cy - 2, cx - 2, cy + 7, color);
-    tft.fillCircle(cx, cy + 10, 7, color);
+    // Jedna, spójna sylwetka płomienia rysowana poziomymi skanliniami.
+    struct Row {
+        int8_t left;
+        int8_t right;
+    };
+    static const Row rows[] = {
+        {0, 0}, {-1, 1}, {-1, 2}, {-2, 2}, {-2, 3},
+        {-3, 3}, {-4, 4}, {-5, 5}, {-6, 6}, {-7, 6},
+        {-8, 6}, {-8, 5}, {-7, 4}, {-6, 4}, {-6, 5},
+        {-7, 7}, {-8, 8}, {-10, 9}, {-11, 10}, {-12, 11},
+        {-13, 12}, {-14, 13}, {-14, 14}, {-14, 14}, {-13, 13},
+        {-12, 12}, {-11, 11}, {-10, 10}, {-8, 9}, {-7, 8},
+        {-6, 7}
+    };
+
+    for (uint8_t index = 0; index < sizeof(rows) / sizeof(rows[0]); ++index) {
+        const int16_t y = cy - 15 + index;
+        const int16_t x = cx + rows[index].left;
+        const int16_t width = rows[index].right - rows[index].left + 1;
+        tft.drawFastHLine(x, y, width, color);
+    }
 }
 
 void drawRadiatorIcon(TFT_eSPI& tft, int16_t x, int16_t y,
