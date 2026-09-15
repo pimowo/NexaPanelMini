@@ -83,7 +83,7 @@ void HomeScreen::drawWeekday(DisplayDriver& display, const AppState& state,
 void HomeScreen::drawDate(DisplayDriver& display, const AppState& state,
                           bool clearRegion) {
     if (clearRegion) display.tft().fillRect(0, 88, 240, 26, Theme::BG);
-    display.drawUtf8(state.dateText, 120, 100, 2,
+    display.drawUtf8(state.dateText, 120, 100, 4,
                      Theme::TEXT, Theme::BG, MC_DATUM);
     date_ = state.dateText;
 }
@@ -122,7 +122,7 @@ void HomeScreen::drawTemperature(DisplayDriver& display,
     bool selectedFromHa = false;
     if (selectDisplayedTemperature(state, selectedTemperature, selectedFromHa)) {
         const String temperature = String(selectedTemperature, 1) + "°C";
-        display.drawUtf8("Aktualnie", 12, 236, 2,
+        display.drawUtf8(selectedFromHa ? "Aktualnie" : "Aktualnie*", 12, 236, 2,
                          Theme::ACCENT, Theme::BG, ML_DATUM);
         display.drawUtf8(temperature, 188, 236, 4,
                          Theme::ACCENT, Theme::BG, MR_DATUM);

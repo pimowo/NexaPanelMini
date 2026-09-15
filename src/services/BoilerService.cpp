@@ -83,7 +83,7 @@ void BoilerService::update(AppState& state) {
             AppConfig::HA_OUTSIDE_TEMP_STALE_MS) {
         state_->haOutsideTempValid = false;
         if (!outsideTempStaleLogged_) {
-            Serial.println("HA OUTSIDE TEMP: stale -> fallback Open-Meteo");
+            Serial.println("HA OUTSIDE TEMP: stale, using Open-Meteo");
             outsideTempStaleLogged_ = true;
         }
     }
@@ -212,7 +212,7 @@ void BoilerService::handleDisconnected(bool retry) {
     if (state_ && state_->haOutsideTempValid) {
         state_->haOutsideTempValid = false;
         outsideTempStaleLogged_ = false;
-        Serial.println("HA OUTSIDE TEMP: invalid");
+        Serial.println("HA OUTSIDE TEMP: unavailable");
     }
     if (shouldLog) Serial.println("MQTT DISCONNECTED");
     if (retry && WiFi.status() == WL_CONNECTED) scheduleRetry();
@@ -317,16 +317,20 @@ void BoilerService::parsePanelRestartCommand(String payload) {
 void BoilerService::parseOutsideTemperature(String payload) {
     payload.trim();
 
+    const bool unavailable = payload.length() == 0 ||
+                             payload.equalsIgnoreCase("unavailable") ||
+                             payload.equalsIgnoreCase("unknown");
     float value = NAN;
-    if (!parseFloatPayload(payload, value)) {
-        if (state_->haOutsideTempValid) {
-            state_->haOutsideTempValid = false;
-            outsideTempStaleLogged_ = false;
-            Serial.println("HA OUTSIDE TEMP: invalid");
-        }
+    if (unavailable || !parseFloatPayload(payload, value)) {
+        state_->haOutsideTempValid = false;
+        outsideTempStaleLogged_ = false;
+        Serial.println("HA OUTSIDE TEMP: unavailable");
         return;
     }
 
+    if (!state_->haOutsideTempValid && outsideTempHadValidSample_) {
+        Serial.println("HA OUTSIDE TEMP: restored");
+    }
     if (!state_->haOutsideTempValid ||
         differentFloat(state_->haOutsideTemp, value)) {
         Serial.printf("HA OUTSIDE TEMP: %.1f C\n", value);
@@ -334,6 +338,7 @@ void BoilerService::parseOutsideTemperature(String payload) {
     state_->haOutsideTemp = value;
     state_->haOutsideTempValid = true;
     state_->haOutsideTempLastUpdateMs = millis();
+    outsideTempHadValidSample_ = true;
     outsideTempStaleLogged_ = false;
 }
 
@@ -372,9 +377,9 @@ bool BoilerService::buildTopics() {
            buildPanelTopic(topics_.panelFirmwareState,
                            sizeof(topics_.panelFirmwareState),
                            PANEL_FIRMWARE_SUFFIX) &&
-           buildPanelTopic(topics_.panelOutsideTemperatureState,
-                           sizeof(topics_.panelOutsideTemperatureState),
-                           AppConfig::PANEL_HA_OUTSIDE_TEMPERATURE_SUFFIX) &&
+           snprintf(topics_.panelOutsideTemperatureState,
+                    sizeof(topics_.panelOutsideTemperatureState), "%s",
+                    AppConfig::HA_SHARED_OUTSIDE_TEMPERATURE_TOPIC) > 0 &&
            buildPanelTopic(topics_.panelRestartSet,
                            sizeof(topics_.panelRestartSet),
                            PANEL_RESTART_SET_SUFFIX) &&

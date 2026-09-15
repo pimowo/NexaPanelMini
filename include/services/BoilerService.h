@@ -72,6 +72,7 @@ private:
     bool wifiWasConnected_ = false;
     bool restartRequested_ = false;
     bool outsideTempStaleLogged_ = false;
+    bool outsideTempHadValidSample_ = false;
     int lastPublishedRssi_ = INT_MIN;
     uint32_t lastPublishedUptimeS_ = UINT32_MAX;
 };

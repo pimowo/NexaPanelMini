@@ -27,13 +27,14 @@ materiałem historycznym i nie jest zależnością kompilacji.
 Usługi są właścicielami komunikacji sieciowej. Aktualizują `AppState`, a UI nie
 zna hostów, topiców ani szczegółów bibliotek transportowych.
 
-`BoilerService` pełni dwie role MQTT na jednym połączeniu:
+`BoilerService` pełni trzy role MQTT na jednym połączeniu:
 
 - komunikacja kotła (stan i komendy),
 - diagnostyka panelu i Home Assistant MQTT Discovery,
 - odbiór temperatury zewnętrznej HA dla ekranu HOME.
 
-Role używają oddzielnych namespace topiców.
+Komunikacja kotła i diagnostyka panelu używają oddzielnych namespace topiców,
+a temperatura zewnętrzna trafia wspólnym topicem `ha/shared/outside_temperature/state`.
 
 ### UI
 
