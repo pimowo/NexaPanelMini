@@ -34,6 +34,11 @@ struct AppState {
     float todayMax = NAN;
     WeatherDay forecast[4];
 
+    // Temperatura zewnętrzna z HA (sensor.temperatura_zewnetrzna)
+    bool haOutsideTempValid = false;
+    float haOutsideTemp = NAN;
+    uint32_t haOutsideTempLastUpdateMs = 0;
+
     // yoRadio
     bool radioOnline = false;
     bool radioOfflineError = false;

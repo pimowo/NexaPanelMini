@@ -30,7 +30,8 @@ zna hostów, topiców ani szczegółów bibliotek transportowych.
 `BoilerService` pełni dwie role MQTT na jednym połączeniu:
 
 - komunikacja kotła (stan i komendy),
-- diagnostyka panelu i Home Assistant MQTT Discovery.
+- diagnostyka panelu i Home Assistant MQTT Discovery,
+- odbiór temperatury zewnętrznej HA dla ekranu HOME.
 
 Role używają oddzielnych namespace topiców.
 

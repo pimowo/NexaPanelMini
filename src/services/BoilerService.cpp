@@ -1,5 +1,6 @@
 #include "services/BoilerService.h"
 #include <ArduinoJson.h>
+#include <ctype.h>
 #include <math.h>
 #include "config.h"
 #include "version.h"
@@ -35,6 +36,19 @@ bool readNumber(JsonVariantConst value, float& result) {
     result = value.as<float>();
     return isfinite(result);
 }
+
+bool parseFloatPayload(const String& payload, float& outValue) {
+    char* end = nullptr;
+    const float parsed = strtof(payload.c_str(), &end);
+    if (end == payload.c_str()) return false;
+    while (*end != '\0') {
+        if (!isspace(static_cast<unsigned char>(*end))) return false;
+        ++end;
+    }
+    if (!isfinite(parsed)) return false;
+    outValue = parsed;
+    return true;
+}
 }
 
 void BoilerService::begin(AppState& state) {
@@ -62,6 +76,17 @@ void BoilerService::begin(AppState& state) {
 void BoilerService::update(AppState& state) {
     state_ = &state;
     if (phase_ == Phase::DISABLED) return;
+
+    const uint32_t now = millis();
+    if (state_->haOutsideTempValid &&
+        static_cast<uint32_t>(now - state_->haOutsideTempLastUpdateMs) >=
+            AppConfig::HA_OUTSIDE_TEMP_STALE_MS) {
+        state_->haOutsideTempValid = false;
+        if (!outsideTempStaleLogged_) {
+            Serial.println("HA OUTSIDE TEMP: stale -> fallback Open-Meteo");
+            outsideTempStaleLogged_ = true;
+        }
+    }
 
     const bool wifiConnected = WiFi.status() == WL_CONNECTED;
     if (!wifiConnected) {
@@ -105,7 +130,6 @@ void BoilerService::update(AppState& state) {
     }
 
     if (phase_ == Phase::CONNECTED) {
-        const uint32_t now = millis();
         if (static_cast<int32_t>(now - nextPanelTelemetryMs_) >= 0) {
             publishPanelTelemetry(false);
             nextPanelTelemetryMs_ = now + AppConfig::PANEL_MQTT_DIAGNOSTIC_PUBLISH_MS;
@@ -154,6 +178,7 @@ void BoilerService::handleConnected() {
     const bool subscribed =
         mqttClient_.subscribe(topics_.climate, 1) &&
         mqttClient_.subscribe(topics_.boilerPower, 1) &&
+        mqttClient_.subscribe(topics_.panelOutsideTemperatureState, 1) &&
         mqttClient_.subscribe(topics_.panelRestartSet, 1);
     if (!subscribed ||
         !publishPanelAvailabilityOnline() ||
@@ -184,6 +209,11 @@ void BoilerService::handleDisconnected(bool retry) {
         state_->boilerOnline = false;
         ++state_->boilerRevision;
     }
+    if (state_ && state_->haOutsideTempValid) {
+        state_->haOutsideTempValid = false;
+        outsideTempStaleLogged_ = false;
+        Serial.println("HA OUTSIDE TEMP: invalid");
+    }
     if (shouldLog) Serial.println("MQTT DISCONNECTED");
     if (retry && WiFi.status() == WL_CONNECTED) scheduleRetry();
 }
@@ -191,6 +221,9 @@ void BoilerService::handleDisconnected(bool retry) {
 void BoilerService::handleMessage(String& topic, String& payload) {
     if (topic == topics_.climate) parseClimate(payload);
     else if (topic == topics_.boilerPower) parseBoilerPower(payload);
+    else if (topic == topics_.panelOutsideTemperatureState) {
+        parseOutsideTemperature(payload);
+    }
     else if (topic == topics_.panelRestartSet) parsePanelRestartCommand(payload);
 }
 
@@ -281,6 +314,29 @@ void BoilerService::parsePanelRestartCommand(String payload) {
     }
 }
 
+void BoilerService::parseOutsideTemperature(String payload) {
+    payload.trim();
+
+    float value = NAN;
+    if (!parseFloatPayload(payload, value)) {
+        if (state_->haOutsideTempValid) {
+            state_->haOutsideTempValid = false;
+            outsideTempStaleLogged_ = false;
+            Serial.println("HA OUTSIDE TEMP: invalid");
+        }
+        return;
+    }
+
+    if (!state_->haOutsideTempValid ||
+        differentFloat(state_->haOutsideTemp, value)) {
+        Serial.printf("HA OUTSIDE TEMP: %.1f C\n", value);
+    }
+    state_->haOutsideTemp = value;
+    state_->haOutsideTempValid = true;
+    state_->haOutsideTempLastUpdateMs = millis();
+    outsideTempStaleLogged_ = false;
+}
+
 bool BoilerService::publishCommand(const char* topic, const char* payload) {
     return phase_ == Phase::CONNECTED && mqttClient_.connected() &&
            mqttClient_.publish(topic, payload, false, 1);
@@ -316,6 +372,9 @@ bool BoilerService::buildTopics() {
            buildPanelTopic(topics_.panelFirmwareState,
                            sizeof(topics_.panelFirmwareState),
                            PANEL_FIRMWARE_SUFFIX) &&
+           buildPanelTopic(topics_.panelOutsideTemperatureState,
+                           sizeof(topics_.panelOutsideTemperatureState),
+                           AppConfig::PANEL_HA_OUTSIDE_TEMPERATURE_SUFFIX) &&
            buildPanelTopic(topics_.panelRestartSet,
                            sizeof(topics_.panelRestartSet),
                            PANEL_RESTART_SET_SUFFIX) &&

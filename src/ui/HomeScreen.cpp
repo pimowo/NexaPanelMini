@@ -1,12 +1,33 @@
 #include "ui/HomeScreen.h"
 #include "display/Theme.h"
 #include "ui/WeatherVisual.h"
+#include "config.h"
 #include <math.h>
 
 namespace {
 bool sameTemperature(float first, float second) {
     return isnan(first) == isnan(second) &&
            (isnan(first) || fabsf(first - second) < 0.05F);
+}
+
+bool selectDisplayedTemperature(const AppState& state, float& temperature,
+                                bool& fromHa) {
+    const bool haFresh = state.haOutsideTempValid &&
+        static_cast<uint32_t>(millis() - state.haOutsideTempLastUpdateMs) <
+            AppConfig::HA_OUTSIDE_TEMP_STALE_MS;
+    if (haFresh && isfinite(state.haOutsideTemp)) {
+        temperature = state.haOutsideTemp;
+        fromHa = true;
+        return true;
+    }
+    if (state.weatherValid && isfinite(state.outsideTemp)) {
+        temperature = state.outsideTemp;
+        fromHa = false;
+        return true;
+    }
+    temperature = NAN;
+    fromHa = false;
+    return false;
 }
 }
 
@@ -33,8 +54,11 @@ void HomeScreen::update(DisplayDriver& display, const AppState& state) {
         !sameTemperature(todayMin_, state.todayMin)) {
         drawWeatherSummary(display, state);
     }
-    if (weatherValidityChanged ||
-        !sameTemperature(temperature_, state.outsideTemp)) {
+    float selectedTemperature = NAN;
+    bool selectedFromHa = false;
+    selectDisplayedTemperature(state, selectedTemperature, selectedFromHa);
+    if (weatherValidityChanged || selectedFromHa != temperatureFromHa_ ||
+        !sameTemperature(temperature_, selectedTemperature)) {
         drawTemperature(display, state);
     }
     cacheValid_ = true;
@@ -94,14 +118,17 @@ void HomeScreen::drawTemperature(DisplayDriver& display,
                                  const AppState& state,
                                  bool clearRegion) {
     if (clearRegion) display.tft().fillRect(0, 210, 240, 56, Theme::BG);
-    if (state.weatherValid && !isnan(state.outsideTemp)) {
-        const String temperature = String(state.outsideTemp, 1) + "°C";
+    float selectedTemperature = NAN;
+    bool selectedFromHa = false;
+    if (selectDisplayedTemperature(state, selectedTemperature, selectedFromHa)) {
+        const String temperature = String(selectedTemperature, 1) + "°C";
         display.drawUtf8("Aktualnie", 12, 236, 2,
                          Theme::ACCENT, Theme::BG, ML_DATUM);
         display.drawUtf8(temperature, 188, 236, 4,
                          Theme::ACCENT, Theme::BG, MR_DATUM);
     }
-    temperature_ = state.outsideTemp;
+    temperature_ = selectedTemperature;
+    temperatureFromHa_ = selectedFromHa;
     weatherValid_ = state.weatherValid;
 }
 

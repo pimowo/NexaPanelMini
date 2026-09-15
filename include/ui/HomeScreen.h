@@ -23,6 +23,7 @@ private:
     String weekday_;
     String date_;
     float temperature_ = NAN;
+    bool temperatureFromHa_ = false;
     float todayMax_ = NAN;
     float todayMin_ = NAN;
     int weatherCode_ = -2;

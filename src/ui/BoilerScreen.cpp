@@ -29,15 +29,14 @@ void drawPowerIcon(TFT_eSPI& tft, int16_t cx, int16_t cy,
 
 void drawFlameIcon(TFT_eSPI& tft, int16_t cx, int16_t cy,
                    uint16_t color) {
-    tft.fillCircle(cx, cy + 8, 10, color);
-    tft.fillTriangle(cx, cy - 17, cx - 11, cy + 4,
-                     cx + 11, cy + 4, color);
-    tft.fillTriangle(cx - 9, cy + 4, cx + 9, cy + 4,
-                     cx, cy + 15, color);
-
-    tft.fillCircle(cx + 1, cy + 8, 4, Theme::BG);
-    tft.fillTriangle(cx + 1, cy - 5, cx - 3, cy + 4,
-                     cx + 4, cy + 2, Theme::BG);
+    // Jednolita sylwetka płomienia (bez dodatkowych kolorów).
+    tft.fillCircle(cx, cy + 10, 8, color);
+    tft.fillTriangle(cx - 3, cy - 16, cx - 12, cy + 6,
+                     cx + 2, cy + 8, color);
+    tft.fillTriangle(cx + 5, cy - 18, cx - 2, cy + 8,
+                     cx + 12, cy + 6, color);
+    tft.fillTriangle(cx - 10, cy + 6, cx + 10, cy + 6,
+                     cx, cy + 16, color);
 }
 
 void drawRadiatorIcon(TFT_eSPI& tft, int16_t x, int16_t y,

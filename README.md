@@ -14,7 +14,8 @@ końcowy kontraktu MQTT kotła.
 - zegar, dzień tygodnia i data,
 - aktualna pogoda, ikona i opis,
 - dzisiejsze MAX/MIN,
-- aktualna temperatura,
+- aktualna temperatura z HA (`sensor.temperatura_zewnetrzna`) z fallbackiem do
+	Open-Meteo,
 - dotknięcie obszaru pogody otwiera `WEATHER_DETAILS`.
 
 ### RADIO
@@ -96,7 +97,16 @@ prezentuje stan oraz wysyła intencje użytkownika.
 - NTP z trzema serwerami i regułą POSIX dla Polski,
 - Open-Meteo przez HTTPS/HTTPClient: `current` oraz `daily`,
 - yoRadio WebSocket pod `/ws`,
-- MQTT dla stanu i sterowania kotłem.
+- MQTT dla stanu i sterowania kotłem oraz temperatury zewnętrznej HA.
+
+Priorytet źródła temperatury na HOME:
+
+1. `sensor.temperatura_zewnetrzna` dostarczony przez MQTT,
+2. `current.temperature_2m` z Open-Meteo,
+3. brak wartości tylko gdy oba źródła są niedostępne.
+
+Firmware nie zależy od fizycznego źródła tej temperatury w HA. Dla panelu
+istotna jest wyłącznie logiczna encja `sensor.temperatura_zewnetrzna`.
 
 ## Home Assistant MQTT Discovery
 

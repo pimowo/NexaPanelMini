@@ -66,6 +66,15 @@ constexpr const char* PANEL_DEVICE_NAME = "NexaPanel Mini";
 constexpr const char* PANEL_DEVICE_MANUFACTURER = "DIY / pimowo";
 constexpr const char* PANEL_DEVICE_MODEL = "NexaPanel Mini ESP8266";
 
+// Temperatura zewnętrzna z HA (sensor.temperatura_zewnetrzna) przekazywana
+// prostym payloadem liczbowym przez MQTT panelu.
+constexpr const char* PANEL_HA_OUTSIDE_TEMPERATURE_SUFFIX =
+	"/ha/outside_temperature/state";
+
+// Po tym czasie bez nowej poprawnej wartości HA temperatura jest uznawana za
+// nieświeżą i HOME wraca do fallbacku Open-Meteo.
+constexpr unsigned long HA_OUTSIDE_TEMP_STALE_MS = 15UL * 60UL * 1000UL;
+
 // Częstotliwość publikacji telemetrii panelu do MQTT (ms).
 constexpr unsigned long PANEL_MQTT_DIAGNOSTIC_PUBLISH_MS = 30000UL;
 

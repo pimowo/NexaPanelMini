@@ -27,6 +27,7 @@ private:
     void handleMessage(String& topic, String& payload);
     void parseClimate(const String& payload);
     void parseBoilerPower(String payload);
+    void parseOutsideTemperature(String payload);
     void parsePanelRestartCommand(String payload);
     bool publishCommand(const char* topic, const char* payload);
     bool buildTopics();
@@ -52,6 +53,7 @@ private:
         char panelRssiState[96]{};
         char panelUptimeState[96]{};
         char panelFirmwareState[96]{};
+        char panelOutsideTemperatureState[96]{};
         char panelRestartSet[96]{};
         char discoveryRssi[128]{};
         char discoveryUptime[128]{};
@@ -69,6 +71,7 @@ private:
     uint8_t backoffStep_ = 0;
     bool wifiWasConnected_ = false;
     bool restartRequested_ = false;
+    bool outsideTempStaleLogged_ = false;
     int lastPublishedRssi_ = INT_MIN;
     uint32_t lastPublishedUptimeS_ = UINT32_MAX;
 };

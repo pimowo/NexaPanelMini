@@ -15,6 +15,12 @@ HOME pokazuje zegar, dzień tygodnia, datę, aktualną pogodę, ikonę, opis ora
 dzisiejsze MAX/MIN i temperaturę bieżącą. Dotknięcie obszaru prognozy powyżej
 belki otwiera `WEATHER_DETAILS`.
 
+Źródła danych HOME:
+
+- ikona/opis/MAX/MIN: Open-Meteo,
+- `Aktualnie`: HA (`sensor.temperatura_zewnetrzna`) przez MQTT,
+- fallback `Aktualnie`: Open-Meteo przy braku/invalid/stale wartości HA.
+
 ## WEATHER_DETAILS
 
 Widok pokazuje trzy przyszłe dni, czyli wpisy prognozy od indeksu 1 do 3.

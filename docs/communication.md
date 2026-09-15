@@ -70,6 +70,14 @@ Subskrypcje:
 - `kuchnia-panel/ha/state/climate`,
 - `kuchnia-panel/ha/state/boiler_power`.
 
+Dodatkowo klient MQTT panelu subskrybuje temperaturę zewnętrzną HA:
+
+- `nexapanel-mini/ha/outside_temperature/state`.
+
+Payload jest prostą wartością liczbową w `°C` (bez JSON). To logiczna wartość
+encji `sensor.temperatura_zewnetrzna`; firmware nie jest powiązany z fizycznym
+źródłem tej encji po stronie HA.
+
 Po połączeniu firmware publikuje `request` do
 `kuchnia-panel/ha/snapshot/request`.
 
@@ -98,6 +106,13 @@ zmienia lokalny podgląd o 0.1 C i od razu publikuje komendę, a późniejszy st
 MQTT pozostaje źródłem prawdy i nadpisuje podgląd.
 
 Połączenie MQTT ma keepalive 15 s i reconnect z backoffem od 1 s do 30 s.
+
+Ważność temperatury zewnętrznej HA:
+
+- brak poprawnej aktualizacji przez 15 minut oznacza `stale` i fallback do
+	Open-Meteo na ekranie HOME,
+- payload `unavailable`/`unknown`/niepoprawny jest traktowany jako invalid,
+- przy rozłączeniu MQTT panel natychmiast przechodzi na fallback Open-Meteo.
 
 ## MQTT NexaPanel Mini / Home Assistant Discovery
 
