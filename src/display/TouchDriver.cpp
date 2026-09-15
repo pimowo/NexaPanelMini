@@ -7,7 +7,7 @@ namespace {
 
 constexpr uint16_t TOUCH_CAL_MAGIC = 0x5843;  // 'XC'
 constexpr uint16_t TOUCH_CAL_VERSION = 1;
-constexpr uint16_t TOUCH_CAL_EEPROM_SIZE = 64;
+constexpr uint16_t TOUCH_CAL_EEPROM_SIZE = 128;
 constexpr uint16_t TOUCH_CAL_EEPROM_OFFSET = 0;
 
 constexpr int16_t SCREEN_W = 240;
@@ -25,6 +25,9 @@ struct CalibrationBlob {
     uint8_t reserved;
     uint32_t checksum;
 };
+
+static_assert(sizeof(CalibrationBlob) <= TOUCH_CAL_EEPROM_SIZE,
+              "CalibrationBlob does not fit in EEPROM storage");
 
 uint32_t fnv1a(const uint8_t* data, size_t size) {
     uint32_t hash = 2166136261UL;
@@ -63,6 +66,14 @@ void TouchDriver::begin() {
     touch_.begin();
     // Rotation 1 leaves the library's measured X/Y axes unchanged.
     touch_.setRotation(1);
+    EEPROM.begin(TOUCH_CAL_EEPROM_SIZE);
+    eepromReady_ = true;
+    Serial.printf("TOUCH EEPROM: begin size=%u\n",
+                  static_cast<unsigned>(TOUCH_CAL_EEPROM_SIZE));
+    Serial.printf("TOUCH EEPROM: CalibrationData size=%u\n",
+                  static_cast<unsigned>(sizeof(CalibrationBlob)));
+    Serial.printf("TOUCH EEPROM: offset=%u\n",
+                  static_cast<unsigned>(TOUCH_CAL_EEPROM_OFFSET));
     Serial.println("TOUCH XPT2046: ready");
 }
 
@@ -84,20 +95,37 @@ bool TouchDriver::hasCalibration() const {
     return calibrated_;
 }
 
+TouchDriver::CalibrationError TouchDriver::lastCalibrationError() const {
+    return lastCalibrationError_;
+}
+
 bool TouchDriver::loadCalibration() {
-    EEPROM.begin(TOUCH_CAL_EEPROM_SIZE);
+    lastCalibrationError_ = CalibrationError::NONE;
+    if (!eepromReady_) {
+        calibrated_ = false;
+        Serial.println("TOUCH EEPROM: load skipped, begin not ready");
+        return false;
+    }
 
     CalibrationBlob blob{};
     EEPROM.get(TOUCH_CAL_EEPROM_OFFSET, blob);
 
+    Serial.println("TOUCH EEPROM: readback raw header");
+    Serial.printf("TOUCH EEPROM: magic=0x%04X\n", blob.magic);
+    Serial.printf("TOUCH EEPROM: version=%u\n", blob.version);
+
     const uint32_t expectedChecksum =
         fnv1a(reinterpret_cast<const uint8_t*>(&blob),
               sizeof(CalibrationBlob) - sizeof(blob.checksum));
+    const bool checksumOk = blob.checksum == expectedChecksum;
+    Serial.printf("TOUCH EEPROM: checksum %s\n",
+                  checksumOk ? "OK" : "FAILED");
 
     if (blob.magic != TOUCH_CAL_MAGIC ||
         blob.version != TOUCH_CAL_VERSION ||
-        blob.checksum != expectedChecksum) {
+        !checksumOk) {
         calibrated_ = false;
+        Serial.println("TOUCH CALIBRATION: no valid calibration");
         return false;
     }
 
@@ -112,16 +140,19 @@ bool TouchDriver::loadCalibration() {
 
     if (!isCalibrationSane(candidate)) {
         calibrated_ = false;
+        Serial.println("TOUCH CALIBRATION: no valid calibration");
         return false;
     }
 
     calibration_ = candidate;
     calibrated_ = true;
-    Serial.println("TOUCH XPT2046: loaded calibration from EEPROM");
+    Serial.println("TOUCH EEPROM: readback OK");
+    Serial.println("TOUCH CALIBRATION: stored calibration loaded");
     return true;
 }
 
 bool TouchDriver::calibrate(DisplayDriver& display) {
+    lastCalibrationError_ = CalibrationError::NONE;
     auto& tft = display.tft();
     tft.fillRect(0, 0, SCREEN_W, SCREEN_H, Theme::BG);
     display.drawUtf8("Kalibracja dotyku", SCREEN_W / 2, 22, 2,
@@ -191,6 +222,16 @@ bool TouchDriver::calibrate(DisplayDriver& display) {
         display.drawUtf8("Powtorz kalibracje", SCREEN_W / 2, 90, 2,
                          Theme::TEXT, Theme::BG, MC_DATUM);
         calibrated_ = false;
+        lastCalibrationError_ = CalibrationError::GEOMETRY;
+        return false;
+    }
+
+    if (!eepromReady_) {
+        display.drawUtf8("Blad EEPROM", SCREEN_W / 2, 90, 2,
+                         Theme::TEXT, Theme::BG, MC_DATUM);
+        Serial.println("TOUCH EEPROM: put skipped, begin not ready");
+        calibrated_ = false;
+        lastCalibrationError_ = CalibrationError::EEPROM_NOT_READY;
         return false;
     }
 
@@ -207,10 +248,43 @@ bool TouchDriver::calibrate(DisplayDriver& display) {
     blob.checksum = fnv1a(reinterpret_cast<const uint8_t*>(&blob),
                           sizeof(CalibrationBlob) - sizeof(blob.checksum));
 
+    Serial.println("TOUCH EEPROM: put");
     EEPROM.put(TOUCH_CAL_EEPROM_OFFSET, blob);
-    if (!EEPROM.commit()) {
-        Serial.println("TOUCH XPT2046: EEPROM commit failed");
+
+    const bool commitOk = EEPROM.commit();
+    Serial.printf("TOUCH EEPROM: commit %s\n", commitOk ? "OK" : "FAILED");
+    if (!commitOk) {
+        display.drawUtf8("Blad zapisu", SCREEN_W / 2, 90, 2,
+                         Theme::TEXT, Theme::BG, MC_DATUM);
         calibrated_ = false;
+        lastCalibrationError_ = CalibrationError::EEPROM_COMMIT;
+        return false;
+    }
+
+    CalibrationBlob verify{};
+    EEPROM.get(TOUCH_CAL_EEPROM_OFFSET, verify);
+    const uint32_t verifyChecksum =
+        fnv1a(reinterpret_cast<const uint8_t*>(&verify),
+              sizeof(CalibrationBlob) - sizeof(verify.checksum));
+    const bool readbackOk =
+        verify.magic == TOUCH_CAL_MAGIC &&
+        verify.version == TOUCH_CAL_VERSION &&
+        verify.checksum == verifyChecksum &&
+        verify.xMin == blob.xMin && verify.xMax == blob.xMax &&
+        verify.yMin == blob.yMin && verify.yMax == blob.yMax &&
+        verify.flags == blob.flags;
+
+    Serial.printf("TOUCH EEPROM: readback %s\n", readbackOk ? "OK" : "FAILED");
+    Serial.printf("TOUCH EEPROM: magic=0x%04X\n", verify.magic);
+    Serial.printf("TOUCH EEPROM: version=%u\n", verify.version);
+    Serial.printf("TOUCH EEPROM: checksum %s\n",
+                  verify.checksum == verifyChecksum ? "OK" : "FAILED");
+
+    if (!readbackOk) {
+        display.drawUtf8("Blad zapisu", SCREEN_W / 2, 90, 2,
+                         Theme::TEXT, Theme::BG, MC_DATUM);
+        calibrated_ = false;
+        lastCalibrationError_ = CalibrationError::EEPROM_READBACK;
         return false;
     }
 
@@ -218,6 +292,7 @@ bool TouchDriver::calibrate(DisplayDriver& display) {
     display.drawUtf8("Kalibracja zapisana", SCREEN_W / 2, 90, 2,
                      Theme::ACCENT, Theme::BG, MC_DATUM);
     delay(600);
+    Serial.println("TOUCH CALIBRATION: calibration saved");
     Serial.printf("TOUCH XPT2046: calibrated swap=%u invX=%u invY=%u x=[%d..%d] y=[%d..%d]\n",
                   calibration_.swapAxes ? 1U : 0U,
                   calibration_.invertX ? 1U : 0U,

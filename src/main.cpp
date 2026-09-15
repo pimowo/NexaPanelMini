@@ -74,6 +74,16 @@ void setup() {
     bool hasCalibration = !forceCalibration && touch.loadCalibration();
     if (!hasCalibration) {
         while (!touch.calibrate(display)) {
+            const TouchDriver::CalibrationError error =
+                touch.lastCalibrationError();
+            if (error == TouchDriver::CalibrationError::EEPROM_NOT_READY ||
+                error == TouchDriver::CalibrationError::EEPROM_COMMIT ||
+                error == TouchDriver::CalibrationError::EEPROM_READBACK) {
+                Serial.println("TOUCH CALIBRATION: EEPROM error, stop calibration loop");
+                while (true) {
+                    delay(250);
+                }
+            }
             Serial.println("TOUCH XPT2046: calibration failed, retrying");
         }
         hasCalibration = true;

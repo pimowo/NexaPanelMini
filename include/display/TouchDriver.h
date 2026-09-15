@@ -11,6 +11,14 @@ struct TouchPoint {
 
 class TouchDriver {
 public:
+    enum class CalibrationError : uint8_t {
+        NONE,
+        GEOMETRY,
+        EEPROM_NOT_READY,
+        EEPROM_COMMIT,
+        EEPROM_READBACK
+    };
+
     struct Calibration {
         int16_t xMin = 0;
         int16_t xMax = 0;
@@ -27,6 +35,7 @@ public:
     bool hasCalibration() const;
     bool loadCalibration();
     bool calibrate(DisplayDriver& display);
+    CalibrationError lastCalibrationError() const;
     bool detectBootCalibrationHold(DisplayDriver& display,
                                    uint32_t holdMs = 3000UL);
 
@@ -40,4 +49,6 @@ private:
     XPT2046_Touchscreen touch_;
     Calibration calibration_;
     bool calibrated_ = false;
+    bool eepromReady_ = false;
+    CalibrationError lastCalibrationError_ = CalibrationError::NONE;
 };
