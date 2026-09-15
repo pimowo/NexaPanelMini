@@ -6,6 +6,8 @@
 
 namespace {
 constexpr int16_t WEATHER_BLOCK_SHIFT_Y = -9;
+constexpr int16_t HOME_BOTTOM_SHIFT_Y = -5;
+constexpr int16_t HOME_VALUES_X = 124;
 
 bool sameTemperature(float first, float second) {
     return isnan(first) == isnan(second) &&
@@ -87,10 +89,8 @@ void HomeScreen::update(DisplayDriver& display, const AppState& state) {
     float selectedPressure = NAN;
     bool pressureFromHa = false;
     selectDisplayedPressure(state, selectedPressure, pressureFromHa);
-    const bool allPrimarySources = selectedFromHa && pressureFromHa;
     if (weatherValidityChanged || selectedFromHa != temperatureFromHa_ ||
         pressureFromHa != pressureFromHa_ ||
-        allPrimarySources != allPrimarySources_ ||
         !sameTemperature(temperature_, selectedTemperature) ||
         !samePressure(pressure_, selectedPressure)) {
         drawBottomWeatherBlock(display, state);
@@ -153,7 +153,7 @@ void HomeScreen::drawWeatherSummary(DisplayDriver& display,
 void HomeScreen::drawBottomWeatherBlock(DisplayDriver& display,
                                         const AppState& state,
                                         bool clearRegion) {
-    if (clearRegion) display.tft().fillRect(0, 204, 240, 62, Theme::BG);
+    if (clearRegion) display.tft().fillRect(0, 199, 240, 67, Theme::BG);
     float selectedTemperature = NAN;
     bool temperatureFromHa = false;
     float selectedPressure = NAN;
@@ -163,28 +163,28 @@ void HomeScreen::drawBottomWeatherBlock(DisplayDriver& display,
                                    temperatureFromHa);
     const bool hasPressure =
         selectDisplayedPressure(state, selectedPressure, pressureFromHa);
-    const bool allPrimarySources = temperatureFromHa && pressureFromHa;
 
-    const String label = allPrimarySources ? "Aktualnie" : "Aktualnie*";
-    display.drawUtf8(label, 12, 241, 2, Theme::ACCENT, Theme::BG, ML_DATUM);
+    display.drawUtf8("Aktualnie", 12, 241 + HOME_BOTTOM_SHIFT_Y, 2,
+                     Theme::ACCENT, Theme::BG, ML_DATUM);
 
     if (hasTemperature) {
-        const String temperature = String(selectedTemperature, 1) + "°C";
-        display.drawUtf8(temperature, 188, 229, 4,
-                         Theme::ACCENT, Theme::BG, MR_DATUM);
+        String temperature = String(selectedTemperature, 1) + "°C";
+        if (!temperatureFromHa) temperature += "*";
+        display.drawUtf8(temperature, HOME_VALUES_X, 229 + HOME_BOTTOM_SHIFT_Y,
+                         4, Theme::ACCENT, Theme::BG, ML_DATUM);
     }
 
-    const String pressureText = hasPressure
+    String pressureText = hasPressure
         ? String(lroundf(selectedPressure)) + " hPa"
         : "--- hPa";
-    display.drawUtf8(pressureText, 188, 252, 2,
-                     Theme::ACCENT, Theme::BG, MR_DATUM);
+    if (hasPressure && !pressureFromHa) pressureText += "*";
+    display.drawUtf8(pressureText, HOME_VALUES_X, 252 + HOME_BOTTOM_SHIFT_Y,
+                     2, Theme::ACCENT, Theme::BG, ML_DATUM);
 
     temperature_ = selectedTemperature;
     pressure_ = selectedPressure;
     temperatureFromHa_ = temperatureFromHa;
     pressureFromHa_ = pressureFromHa;
-    allPrimarySources_ = allPrimarySources;
     weatherValid_ = state.weatherValid;
 }
 

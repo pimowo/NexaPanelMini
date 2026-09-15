@@ -29,14 +29,14 @@ void drawPowerIcon(TFT_eSPI& tft, int16_t cx, int16_t cy,
 
 void drawFlameIcon(TFT_eSPI& tft, int16_t cx, int16_t cy,
                    uint16_t color) {
-    // Nowa sylwetka: smukły czubek, boczne załamania i szersza podstawa.
-    tft.fillCircle(cx, cy + 11, 8, color);
-    tft.fillTriangle(cx, cy - 19, cx - 4, cy - 8, cx + 4, cy - 8, color);
-    tft.fillTriangle(cx - 4, cy - 8, cx - 15, cy + 3, cx - 3, cy + 6, color);
-    tft.fillTriangle(cx + 4, cy - 8, cx + 15, cy + 3, cx + 3, cy + 6, color);
-    tft.fillTriangle(cx - 12, cy + 2, cx + 12, cy + 2, cx, cy + 16, color);
-    tft.fillTriangle(cx - 8, cy + 5, cx - 1, cy - 1, cx + 1, cy + 7, color);
-    tft.fillTriangle(cx + 8, cy + 5, cx + 1, cy - 1, cx - 1, cy + 7, color);
+    // Klasyczny płomień: smukły czubek i szersza podstawa z bocznymi załamaniami.
+    tft.fillTriangle(cx, cy - 18, cx - 5, cy - 7, cx + 5, cy - 7, color);
+    tft.fillTriangle(cx - 5, cy - 7, cx - 15, cy + 4, cx - 2, cy + 8, color);
+    tft.fillTriangle(cx + 5, cy - 7, cx + 15, cy + 4, cx + 2, cy + 8, color);
+    tft.fillTriangle(cx - 14, cy + 3, cx + 14, cy + 3, cx, cy + 16, color);
+    tft.fillTriangle(cx - 9, cy + 6, cx, cy - 2, cx + 2, cy + 7, color);
+    tft.fillTriangle(cx + 9, cy + 6, cx, cy - 2, cx - 2, cy + 7, color);
+    tft.fillCircle(cx, cy + 10, 7, color);
 }
 
 void drawRadiatorIcon(TFT_eSPI& tft, int16_t x, int16_t y,
@@ -106,7 +106,7 @@ void BoilerScreen::update(DisplayDriver& display, const AppState& state) {
 }
 
 void BoilerScreen::drawStatic(DisplayDriver& display) {
-    display.drawUtf8("Temperatura", 120, 82, 2,
+    display.drawUtf8("Temperatura", 120, 86, 2,
                      Theme::ACCENT, Theme::BG, MC_DATUM);
     display.drawUtf8("Aktualna", 12, 128, 2,
                      Theme::TEXT, Theme::BG, ML_DATUM);

@@ -26,7 +26,6 @@ private:
     float pressure_ = NAN;
     bool temperatureFromHa_ = false;
     bool pressureFromHa_ = false;
-    bool allPrimarySources_ = false;
     float todayMax_ = NAN;
     float todayMin_ = NAN;
     int weatherCode_ = -2;
