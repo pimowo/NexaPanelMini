@@ -6,6 +6,12 @@
 .vscode/ipch/
 .DS_Store
 Thumbs.db
+*.tmp
+*.bak
+*.old
+*.orig
+*.rej
+*.local
 data/config/secrets.json
 include/secrets.h
 reference/
