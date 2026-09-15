@@ -16,14 +16,17 @@ private:
                   bool clearRegion = true);
     void drawWeatherSummary(DisplayDriver& display, const AppState& state,
                             bool clearRegion = true);
-    void drawTemperature(DisplayDriver& display, const AppState& state,
-                         bool clearRegion = true);
+    void drawBottomWeatherBlock(DisplayDriver& display, const AppState& state,
+                                bool clearRegion = true);
 
     String clock_;
     String weekday_;
     String date_;
     float temperature_ = NAN;
+    float pressure_ = NAN;
     bool temperatureFromHa_ = false;
+    bool pressureFromHa_ = false;
+    bool allPrimarySources_ = false;
     float todayMax_ = NAN;
     float todayMin_ = NAN;
     int weatherCode_ = -2;

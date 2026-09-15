@@ -30,6 +30,7 @@ struct AppState {
     bool weatherValid = false;
     int currentWeatherCode = -1;
     float outsideTemp = NAN;
+    float outsidePressure = NAN;
     float todayMin = NAN;
     float todayMax = NAN;
     WeatherDay forecast[4];
@@ -38,6 +39,9 @@ struct AppState {
     bool haOutsideTempValid = false;
     float haOutsideTemp = NAN;
     uint32_t haOutsideTempLastUpdateMs = 0;
+    bool haOutsidePressureValid = false;
+    float haOutsidePressure = NAN;
+    uint32_t haOutsidePressureLastUpdateMs = 0;
 
     // yoRadio
     bool radioOnline = false;

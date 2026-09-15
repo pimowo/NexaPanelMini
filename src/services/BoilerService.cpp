@@ -87,6 +87,15 @@ void BoilerService::update(AppState& state) {
             outsideTempStaleLogged_ = true;
         }
     }
+    if (state_->haOutsidePressureValid &&
+        static_cast<uint32_t>(now - state_->haOutsidePressureLastUpdateMs) >=
+            AppConfig::HA_OUTSIDE_TEMP_STALE_MS) {
+        state_->haOutsidePressureValid = false;
+        if (!outsidePressureStaleLogged_) {
+            Serial.println("HA OUTSIDE PRESSURE: stale, using Open-Meteo");
+            outsidePressureStaleLogged_ = true;
+        }
+    }
 
     const bool wifiConnected = WiFi.status() == WL_CONNECTED;
     if (!wifiConnected) {
@@ -179,6 +188,7 @@ void BoilerService::handleConnected() {
         mqttClient_.subscribe(topics_.climate, 1) &&
         mqttClient_.subscribe(topics_.boilerPower, 1) &&
         mqttClient_.subscribe(topics_.panelOutsideTemperatureState, 1) &&
+        mqttClient_.subscribe(topics_.panelOutsidePressureState, 1) &&
         mqttClient_.subscribe(topics_.panelRestartSet, 1);
     if (!subscribed ||
         !publishPanelAvailabilityOnline() ||
@@ -214,6 +224,11 @@ void BoilerService::handleDisconnected(bool retry) {
         outsideTempStaleLogged_ = false;
         Serial.println("HA OUTSIDE TEMP: unavailable");
     }
+    if (state_ && state_->haOutsidePressureValid) {
+        state_->haOutsidePressureValid = false;
+        outsidePressureStaleLogged_ = false;
+        Serial.println("HA OUTSIDE PRESSURE: unavailable");
+    }
     if (shouldLog) Serial.println("MQTT DISCONNECTED");
     if (retry && WiFi.status() == WL_CONNECTED) scheduleRetry();
 }
@@ -223,6 +238,9 @@ void BoilerService::handleMessage(String& topic, String& payload) {
     else if (topic == topics_.boilerPower) parseBoilerPower(payload);
     else if (topic == topics_.panelOutsideTemperatureState) {
         parseOutsideTemperature(payload);
+    }
+    else if (topic == topics_.panelOutsidePressureState) {
+        parseOutsidePressure(payload);
     }
     else if (topic == topics_.panelRestartSet) parsePanelRestartCommand(payload);
 }
@@ -322,9 +340,11 @@ void BoilerService::parseOutsideTemperature(String payload) {
                              payload.equalsIgnoreCase("unknown");
     float value = NAN;
     if (unavailable || !parseFloatPayload(payload, value)) {
-        state_->haOutsideTempValid = false;
-        outsideTempStaleLogged_ = false;
-        Serial.println("HA OUTSIDE TEMP: unavailable");
+        if (state_->haOutsideTempValid) {
+            state_->haOutsideTempValid = false;
+            outsideTempStaleLogged_ = false;
+            Serial.println("HA OUTSIDE TEMP: unavailable");
+        }
         return;
     }
 
@@ -340,6 +360,36 @@ void BoilerService::parseOutsideTemperature(String payload) {
     state_->haOutsideTempLastUpdateMs = millis();
     outsideTempHadValidSample_ = true;
     outsideTempStaleLogged_ = false;
+}
+
+void BoilerService::parseOutsidePressure(String payload) {
+    payload.trim();
+
+    const bool unavailable = payload.length() == 0 ||
+                             payload.equalsIgnoreCase("unavailable") ||
+                             payload.equalsIgnoreCase("unknown");
+    float value = NAN;
+    if (unavailable || !parseFloatPayload(payload, value)) {
+        if (state_->haOutsidePressureValid) {
+            state_->haOutsidePressureValid = false;
+            outsidePressureStaleLogged_ = false;
+            Serial.println("HA OUTSIDE PRESSURE: unavailable");
+        }
+        return;
+    }
+
+    if (!state_->haOutsidePressureValid && outsidePressureHadValidSample_) {
+        Serial.println("HA OUTSIDE PRESSURE: restored");
+    }
+    if (!state_->haOutsidePressureValid ||
+        differentFloat(state_->haOutsidePressure, value)) {
+        Serial.printf("HA OUTSIDE PRESSURE: %.0f hPa\n", value);
+    }
+    state_->haOutsidePressure = value;
+    state_->haOutsidePressureValid = true;
+    state_->haOutsidePressureLastUpdateMs = millis();
+    outsidePressureHadValidSample_ = true;
+    outsidePressureStaleLogged_ = false;
 }
 
 bool BoilerService::publishCommand(const char* topic, const char* payload) {
@@ -380,6 +430,9 @@ bool BoilerService::buildTopics() {
            snprintf(topics_.panelOutsideTemperatureState,
                     sizeof(topics_.panelOutsideTemperatureState), "%s",
                     AppConfig::HA_SHARED_OUTSIDE_TEMPERATURE_TOPIC) > 0 &&
+           snprintf(topics_.panelOutsidePressureState,
+                    sizeof(topics_.panelOutsidePressureState), "%s",
+                    AppConfig::HA_SHARED_OUTSIDE_PRESSURE_TOPIC) > 0 &&
            buildPanelTopic(topics_.panelRestartSet,
                            sizeof(topics_.panelRestartSet),
                            PANEL_RESTART_SET_SUFFIX) &&

@@ -31,10 +31,12 @@ zna hostów, topiców ani szczegółów bibliotek transportowych.
 
 - komunikacja kotła (stan i komendy),
 - diagnostyka panelu i Home Assistant MQTT Discovery,
-- odbiór temperatury zewnętrznej HA dla ekranu HOME.
+- odbiór temperatury i ciśnienia zewnętrznego HA dla ekranu HOME.
 
 Komunikacja kotła i diagnostyka panelu używają oddzielnych namespace topiców,
-a temperatura zewnętrzna trafia wspólnym topicem `ha/shared/outside_temperature/state`.
+a temperatura i ciśnienie zewnętrzne trafiają wspólnymi topicami
+`ha/shared/outside_temperature/state` oraz
+`ha/shared/outside_pressure/state`.
 
 ### UI
 

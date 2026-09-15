@@ -16,6 +16,8 @@ końcowy kontraktu MQTT kotła.
 - dzisiejsze MAX/MIN,
 - aktualna temperatura z HA (`sensor.temperatura_zewnetrzna`) przez wspólny
 	topic `ha/shared/outside_temperature/state` z fallbackiem do Open-Meteo,
+- aktualne ciśnienie z HA przez wspólny topic
+	`ha/shared/outside_pressure/state` z fallbackiem do Open-Meteo,
 - dotknięcie obszaru pogody otwiera `WEATHER_DETAILS`.
 
 ### RADIO
@@ -101,9 +103,11 @@ prezentuje stan oraz wysyła intencje użytkownika.
 
 Priorytet źródła temperatury na HOME:
 
-1. wspólny topic HA `ha/shared/outside_temperature/state`,
-2. `current.temperature_2m` z Open-Meteo (oznaczenie `Aktualnie*`),
-3. brak wartości tylko gdy oba źródła są niedostępne.
+1. temperatura HA: `ha/shared/outside_temperature/state`,
+2. ciśnienie HA: `ha/shared/outside_pressure/state`,
+3. fallback Open-Meteo: `current.temperature_2m` i `current.pressure_msl`,
+4. etykieta `Aktualnie` tylko gdy oba parametry są z HA,
+5. etykieta `Aktualnie*` gdy choć jeden parametr używa fallbacku.
 
 Firmware nie zależy od fizycznego źródła tej temperatury w HA. Dla panelu
 istotna jest wyłącznie logiczna encja `sensor.temperatura_zewnetrzna`.

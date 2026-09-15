@@ -5,9 +5,16 @@
 #include <math.h>
 
 namespace {
+constexpr int16_t WEATHER_BLOCK_SHIFT_Y = -9;
+
 bool sameTemperature(float first, float second) {
     return isnan(first) == isnan(second) &&
            (isnan(first) || fabsf(first - second) < 0.05F);
+}
+
+bool samePressure(float first, float second) {
+    return isnan(first) == isnan(second) &&
+           (isnan(first) || fabsf(first - second) < 0.5F);
 }
 
 bool selectDisplayedTemperature(const AppState& state, float& temperature,
@@ -29,6 +36,26 @@ bool selectDisplayedTemperature(const AppState& state, float& temperature,
     fromHa = false;
     return false;
 }
+
+bool selectDisplayedPressure(const AppState& state, float& pressure,
+                             bool& fromHa) {
+    const bool haFresh = state.haOutsidePressureValid &&
+        static_cast<uint32_t>(millis() - state.haOutsidePressureLastUpdateMs) <
+            AppConfig::HA_OUTSIDE_TEMP_STALE_MS;
+    if (haFresh && isfinite(state.haOutsidePressure)) {
+        pressure = state.haOutsidePressure;
+        fromHa = true;
+        return true;
+    }
+    if (state.weatherValid && isfinite(state.outsidePressure)) {
+        pressure = state.outsidePressure;
+        fromHa = false;
+        return true;
+    }
+    pressure = NAN;
+    fromHa = false;
+    return false;
+}
 }
 
 void HomeScreen::draw(DisplayDriver& display, const AppState& state) {
@@ -38,7 +65,7 @@ void HomeScreen::draw(DisplayDriver& display, const AppState& state) {
     drawWeekday(display, state, false);
     drawDate(display, state, false);
     drawWeatherSummary(display, state, false);
-    drawTemperature(display, state, false);
+    drawBottomWeatherBlock(display, state, false);
     cacheValid_ = true;
 }
 
@@ -57,9 +84,16 @@ void HomeScreen::update(DisplayDriver& display, const AppState& state) {
     float selectedTemperature = NAN;
     bool selectedFromHa = false;
     selectDisplayedTemperature(state, selectedTemperature, selectedFromHa);
+    float selectedPressure = NAN;
+    bool pressureFromHa = false;
+    selectDisplayedPressure(state, selectedPressure, pressureFromHa);
+    const bool allPrimarySources = selectedFromHa && pressureFromHa;
     if (weatherValidityChanged || selectedFromHa != temperatureFromHa_ ||
-        !sameTemperature(temperature_, selectedTemperature)) {
-        drawTemperature(display, state);
+        pressureFromHa != pressureFromHa_ ||
+        allPrimarySources != allPrimarySources_ ||
+        !sameTemperature(temperature_, selectedTemperature) ||
+        !samePressure(pressure_, selectedPressure)) {
+        drawBottomWeatherBlock(display, state);
     }
     cacheValid_ = true;
 }
@@ -92,16 +126,18 @@ void HomeScreen::drawWeatherSummary(DisplayDriver& display,
                                     const AppState& state,
                                     bool clearRegion) {
     auto& tft = display.tft();
-    if (clearRegion) tft.fillRect(0, 116, 240, 94, Theme::BG);
+    if (clearRegion) tft.fillRect(0, 116 + WEATHER_BLOCK_SHIFT_Y, 240, 94,
+                                  Theme::BG);
     if (state.weatherValid) {
-        drawWeatherIcon(tft, 17, 138, 40, state.currentWeatherCode);
+        drawWeatherIcon(tft, 17, 138 + WEATHER_BLOCK_SHIFT_Y, 40,
+                        state.currentWeatherCode);
         if (!isnan(state.todayMax) && !isnan(state.todayMin)) {
             const String range = String(state.todayMax, 0) + "°C / " +
                                  String(state.todayMin, 0) + "°C";
-            display.drawUtf8(range, 218, 158, 4,
+            display.drawUtf8(range, 218, 158 + WEATHER_BLOCK_SHIFT_Y, 4,
                              Theme::TEXT, Theme::BG, MR_DATUM);
         }
-        tft.setViewport(12, 186, 216, 24, true);
+        tft.setViewport(12, 186 + WEATHER_BLOCK_SHIFT_Y, 216, 24, true);
         tft.setTextWrap(false, false);
         display.drawUtf8(weatherDescriptionPl(state.currentWeatherCode),
                          0, 12, 2, Theme::TEXT, Theme::BG, ML_DATUM);
@@ -114,21 +150,41 @@ void HomeScreen::drawWeatherSummary(DisplayDriver& display,
     todayMin_ = state.todayMin;
 }
 
-void HomeScreen::drawTemperature(DisplayDriver& display,
-                                 const AppState& state,
-                                 bool clearRegion) {
-    if (clearRegion) display.tft().fillRect(0, 210, 240, 56, Theme::BG);
+void HomeScreen::drawBottomWeatherBlock(DisplayDriver& display,
+                                        const AppState& state,
+                                        bool clearRegion) {
+    if (clearRegion) display.tft().fillRect(0, 204, 240, 62, Theme::BG);
     float selectedTemperature = NAN;
-    bool selectedFromHa = false;
-    if (selectDisplayedTemperature(state, selectedTemperature, selectedFromHa)) {
+    bool temperatureFromHa = false;
+    float selectedPressure = NAN;
+    bool pressureFromHa = false;
+    const bool hasTemperature =
+        selectDisplayedTemperature(state, selectedTemperature,
+                                   temperatureFromHa);
+    const bool hasPressure =
+        selectDisplayedPressure(state, selectedPressure, pressureFromHa);
+    const bool allPrimarySources = temperatureFromHa && pressureFromHa;
+
+    const String label = allPrimarySources ? "Aktualnie" : "Aktualnie*";
+    display.drawUtf8(label, 12, 241, 2, Theme::ACCENT, Theme::BG, ML_DATUM);
+
+    if (hasTemperature) {
         const String temperature = String(selectedTemperature, 1) + "°C";
-        display.drawUtf8(selectedFromHa ? "Aktualnie" : "Aktualnie*", 12, 236, 2,
-                         Theme::ACCENT, Theme::BG, ML_DATUM);
-        display.drawUtf8(temperature, 188, 236, 4,
+        display.drawUtf8(temperature, 188, 229, 4,
                          Theme::ACCENT, Theme::BG, MR_DATUM);
     }
+
+    const String pressureText = hasPressure
+        ? String(lroundf(selectedPressure)) + " hPa"
+        : "--- hPa";
+    display.drawUtf8(pressureText, 188, 252, 2,
+                     Theme::ACCENT, Theme::BG, MR_DATUM);
+
     temperature_ = selectedTemperature;
-    temperatureFromHa_ = selectedFromHa;
+    pressure_ = selectedPressure;
+    temperatureFromHa_ = temperatureFromHa;
+    pressureFromHa_ = pressureFromHa;
+    allPrimarySources_ = allPrimarySources;
     weatherValid_ = state.weatherValid;
 }
 

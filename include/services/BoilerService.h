@@ -28,6 +28,7 @@ private:
     void parseClimate(const String& payload);
     void parseBoilerPower(String payload);
     void parseOutsideTemperature(String payload);
+    void parseOutsidePressure(String payload);
     void parsePanelRestartCommand(String payload);
     bool publishCommand(const char* topic, const char* payload);
     bool buildTopics();
@@ -54,6 +55,7 @@ private:
         char panelUptimeState[96]{};
         char panelFirmwareState[96]{};
         char panelOutsideTemperatureState[96]{};
+        char panelOutsidePressureState[96]{};
         char panelRestartSet[96]{};
         char discoveryRssi[128]{};
         char discoveryUptime[128]{};
@@ -73,6 +75,8 @@ private:
     bool restartRequested_ = false;
     bool outsideTempStaleLogged_ = false;
     bool outsideTempHadValidSample_ = false;
+    bool outsidePressureStaleLogged_ = false;
+    bool outsidePressureHadValidSample_ = false;
     int lastPublishedRssi_ = INT_MIN;
     uint32_t lastPublishedUptimeS_ = UINT32_MAX;
 };

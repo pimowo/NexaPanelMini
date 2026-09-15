@@ -24,12 +24,12 @@ ESP8266. Resynchronizacja jest konfigurowana w `config.h`.
 ## Weather
 
 `WeatherService` pobiera HTTPS z Open-Meteo przez `HTTPClient`. Zapytanie
-zawiera `current=temperature_2m,weather_code` oraz
+zawiera `current=temperature_2m,pressure_msl,weather_code` oraz
 `daily=weather_code,temperature_2m_max,temperature_2m_min`, strefę
 `Europe/Warsaw` i `forecast_days=4`.
 
-Firmware zapisuje temperaturę bieżącą, kod pogody, dzisiejsze MAX/MIN oraz
-cztery wpisy danych dziennych. HOME używa indeksu 0, a
+Firmware zapisuje temperaturę bieżącą, ciśnienie bieżące, kod pogody,
+dzisiejsze MAX/MIN oraz cztery wpisy danych dziennych. HOME używa indeksu 0, a
 `WEATHER_DETAILS` pokazuje indeksy 1-3, czyli trzy przyszłe dni. Sukces powoduje
 odświeżenie po 15 minutach, a błąd ponowienie po 60 sekundach. Przy błędzie
 ostatnie poprawne dane pozostają w `AppState`.
@@ -74,6 +74,10 @@ Dodatkowo klient MQTT panelu subskrybuje temperaturę zewnętrzną HA:
 
 - `ha/shared/outside_temperature/state`.
 
+Oraz ciśnienie zewnętrzne HA:
+
+- `ha/shared/outside_pressure/state`.
+
 Payload jest prostą wartością liczbową w `°C` (bez JSON). To logiczna wartość
 encji `sensor.temperatura_zewnetrzna`; firmware nie jest powiązany z fizycznym
 źródłem tej encji po stronie HA.
@@ -108,6 +112,13 @@ MQTT pozostaje źródłem prawdy i nadpisuje podgląd.
 Połączenie MQTT ma keepalive 15 s i reconnect z backoffem od 1 s do 30 s.
 
 Ważność temperatury zewnętrznej HA:
+
+- brak poprawnej aktualizacji przez 15 minut oznacza `stale` i fallback do
+	Open-Meteo (`Aktualnie*`) na ekranie HOME,
+- payload `unavailable`/`unknown`/niepoprawny jest traktowany jako invalid,
+- przy rozłączeniu MQTT panel natychmiast przechodzi na fallback Open-Meteo.
+
+Ważność ciśnienia zewnętrznego HA:
 
 - brak poprawnej aktualizacji przez 15 minut oznacza `stale` i fallback do
 	Open-Meteo (`Aktualnie*`) na ekranie HOME,

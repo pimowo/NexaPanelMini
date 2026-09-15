@@ -99,6 +99,7 @@ bool WeatherService::applyResponse(Stream& stream, AppState& state) {
     }
 
     const float currentTemperature = current["temperature_2m"] | NAN;
+    const float currentPressure = current["pressure_msl"] | NAN;
     const int currentCode = current["weather_code"] | -1;
     if (!isfinite(currentTemperature) || currentCode < 0) {
         Serial.println("WEATHER JSON invalid current data");
@@ -126,10 +127,16 @@ bool WeatherService::applyResponse(Stream& stream, AppState& state) {
 
     bool changed = !state.weatherValid ||
                    state.currentWeatherCode != currentCode ||
-                   fabsf(state.outsideTemp - currentTemperature) >= 0.05F;
+                   fabsf(state.outsideTemp - currentTemperature) >= 0.05F ||
+                   (isfinite(currentPressure)
+                        ? (!isfinite(state.outsidePressure) ||
+                           fabsf(state.outsidePressure - currentPressure) >=
+                               0.5F)
+                        : isfinite(state.outsidePressure));
     state.weatherValid = true;
     state.currentWeatherCode = currentCode;
     state.outsideTemp = currentTemperature;
+    state.outsidePressure = isfinite(currentPressure) ? currentPressure : NAN;
     state.todayMax = parsed[0].tempMax;
     state.todayMin = parsed[0].tempMin;
     for (uint8_t index = 0; index < 4; ++index) {
@@ -150,7 +157,7 @@ String WeatherService::buildUrl() const {
     url += AppConfig::WEATHER_LATITUDE;
     url += "&longitude=";
     url += AppConfig::WEATHER_LONGITUDE;
-    url += "&current=temperature_2m,weather_code";
+    url += "&current=temperature_2m,pressure_msl,weather_code";
     url += "&daily=weather_code,temperature_2m_max,temperature_2m_min";
     url += "&timezone=Europe%2FWarsaw&forecast_days=4";
     return url;

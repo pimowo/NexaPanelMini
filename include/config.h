@@ -70,6 +70,10 @@ constexpr const char* PANEL_DEVICE_MODEL = "NexaPanel Mini ESP8266";
 constexpr const char* HA_SHARED_OUTSIDE_TEMPERATURE_TOPIC =
 	"ha/shared/outside_temperature/state";
 
+// Wspólny topic HA z ciśnieniem zewnętrznym.
+constexpr const char* HA_SHARED_OUTSIDE_PRESSURE_TOPIC =
+	"ha/shared/outside_pressure/state";
+
 // Po tym czasie bez nowej poprawnej wartości HA temperatura jest uznawana za
 // nieświeżą i HOME wraca do fallbacku Open-Meteo.
 constexpr unsigned long HA_OUTSIDE_TEMP_STALE_MS = 15UL * 60UL * 1000UL;

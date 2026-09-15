@@ -18,8 +18,14 @@ belki otwiera `WEATHER_DETAILS`.
 Źródła danych HOME:
 
 - ikona/opis/MAX/MIN: Open-Meteo,
-- `Aktualnie`: HA przez topic `ha/shared/outside_temperature/state`,
-- fallback `Aktualnie*`: Open-Meteo przy braku/invalid/stale wartości HA.
+- temperatura: HA `ha/shared/outside_temperature/state` z fallbackiem
+	Open-Meteo,
+- ciśnienie: HA `ha/shared/outside_pressure/state` z fallbackiem Open-Meteo.
+
+Znaczenie etykiety:
+
+- `Aktualnie`: zarówno temperatura, jak i ciśnienie pochodzą ze świeżego HA,
+- `Aktualnie*`: co najmniej jedna z wartości używa fallbacku Open-Meteo.
 
 ## WEATHER_DETAILS
 
