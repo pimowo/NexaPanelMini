@@ -191,7 +191,7 @@ Europe/Warsaw. Firmware nie używa RTC ani ręcznego przełączania UTC+1/UTC+2.
 
 ## Aktualny status
 
-- firmware: `0.1.0-dev`,
+- firmware: `1.0.0`,
 - projekt: kandydat do release przed v1.0.0,
 - backlight jest sprzętowo zasilany stale i nie jest sterowany przez firmware,
 - końcowy 24-godzinny soak test nie został jeszcze wykonany.
