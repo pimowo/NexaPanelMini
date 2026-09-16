@@ -129,8 +129,11 @@ Ważność ciśnienia zewnętrznego HA:
 HA musi publikować oba topici okresowo, np. co 5 minut, także gdy wartość
 się nie zmienia, oraz przy zmianie stanu i starcie HA. Retained wiadomość
 nie zastępuje heartbeat: timeout 15 minut biegnie od ostatniej poprawnej
-wiadomości odebranej przez panel. Aktualna automatyzacja HA wymaga osobnego
-potwierdzenia; firmware nie zarządza jej konfiguracją.
+wiadomości odebranej przez panel. Finalna walidacja v1.0.0 potwierdziła publikację przy zmianie stanu, starcie
+Home Assistant oraz heartbeat co 5 minut. Pięć minut jest krótsze niż timeout
+15 minut. Firmware nie zarządza konfiguracją automatyzacji HA.
+
+Praktyczna konfiguracja znajduje się w [docs/home-assistant.md](home-assistant.md).
 
 ## MQTT NexaPanel Mini / Home Assistant Discovery
 

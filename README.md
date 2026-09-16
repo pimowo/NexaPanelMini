@@ -3,9 +3,10 @@
 NexaPanel Mini to firmware dla małego panelu ESP8266 z Wemos D1 mini,
 wyświetlaczem ILI9341 240x320 w orientacji pionowej i kontrolerem dotyku
 XPT2046. Urządzenie korzysta z Wi-Fi, NTP, Open-Meteo, yoRadio WebSocket oraz
-MQTT dla kotła. Działa samodzielnie, bez zależności od Home Assistant po stronie
-interfejsu użytkownika; Home Assistant jest używany tylko jako zgodny punkt
-końcowy kontraktu MQTT kotła.
+MQTT. Home Assistant przez MQTT dostarcza temperaturę i ciśnienie zewnętrzne,
+stan klimatu i zasilania kotła, a panel publikuje komendy kotła, diagnostykę,
+availability i MQTT Discovery. Panel nie korzysta z REST API Home Assistant ani
+z tokena HA.
 
 ## Funkcje
 
@@ -99,7 +100,12 @@ prezentuje stan oraz wysyła intencje użytkownika.
 - NTP z trzema serwerami i regułą POSIX dla Polski,
 - Open-Meteo przez HTTPS/HTTPClient: `current` oraz `daily`,
 - yoRadio WebSocket pod `/ws`,
-- MQTT dla stanu i sterowania kotłem oraz temperatury zewnętrznej HA.
+- MQTT dla stanu i sterowania kotłem oraz danych zewnętrznych HA:
+  `ha/shared/outside_temperature/state` i
+  `ha/shared/outside_pressure/state`.
+
+Pełna instrukcja integracji znajduje się w
+[docs/home-assistant.md](docs/home-assistant.md).
 
 Priorytet źródła temperatury na HOME:
 
@@ -184,6 +190,11 @@ Aktualne mapowanie i ostrzeżenia bootstrapów opisuje [docs/gpio.md](docs/gpio.
 Najważniejsze: D8/GPIO15 musi być LOW podczas startu, a D3/GPIO0 i D4/GPIO2
 muszą być HIGH. Podświetlenie LCD nie używa linii sterowania z ESP8266.
 
+Panel bazuje na rodzinie płytek Nettigo [Ekran dotykowy z WiFi i kartą SD do
+Wemos D1 mini](https://nettigo.pl/products/plytka-pcb-ekran-dotykowy-z-wifi-i-karta-sd-do-wemos-d1-mini).
+Dokumentacja opisuje faktycznie używane połączenia GPIO; rewizja fizycznego
+egzemplarza PCB nie jest określona w repozytorium.
+
 ## Time
 
 Strefa czasu to `CET-1CEST,M3.5.0,M10.5.0/3`, czyli automatyczne CET/CEST dla
@@ -192,9 +203,14 @@ Europe/Warsaw. Firmware nie używa RTC ani ręcznego przełączania UTC+1/UTC+2.
 ## Aktualny status
 
 - firmware: `1.0.0`,
-- projekt: kandydat do release przed v1.0.0,
+- release: `v1.0.0`,
+- build: SUCCESS,
+- upload: SUCCESS, 100%, Hash of data verified,
+- finalna walidacja runtime: 15 min 30 s,
+- brak restartów, WDT i exceptions,
+- heartbeat HA temperatury i ciśnienia potwierdzony,
 - backlight jest sprzętowo zasilany stale i nie jest sterowany przez firmware,
-- końcowy 24-godzinny soak test nie został jeszcze wykonany.
+- 24-godzinny soak test nie był wykonywany.
 
 Folder `reference/` jest materiałem historycznym ignorowanym przez Git i nie
 jest wymagany do kompilacji ani działania NexaPanel Mini.

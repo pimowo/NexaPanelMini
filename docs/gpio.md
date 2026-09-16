@@ -1,5 +1,10 @@
 # GPIO - Wemos D1 mini
 
+Używana jest rodzina płytek Nettigo [Ekran dotykowy z WiFi i kartą SD do
+Wemos D1 mini](https://nettigo.pl/products/plytka-pcb-ekran-dotykowy-z-wifi-i-karta-sd-do-wemos-d1-mini).
+Poniższa tabela opisuje połączenia używane przez firmware; numer rewizji
+fizycznego egzemplarza nie jest określony w repozytorium.
+
 | Funkcja | Pin | Uwagi |
 |---|---|---|
 | SPI SCK | D5 / GPIO14 | TFT, touch i ewentualne SD |
