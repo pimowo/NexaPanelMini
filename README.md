@@ -106,8 +106,9 @@ Priorytet źródła temperatury na HOME:
 1. temperatura HA: `ha/shared/outside_temperature/state`,
 2. ciśnienie HA: `ha/shared/outside_pressure/state`,
 3. fallback Open-Meteo: `current.temperature_2m` i `current.pressure_msl`,
-4. etykieta `Aktualnie` tylko gdy oba parametry są z HA,
-5. etykieta `Aktualnie*` gdy choć jeden parametr używa fallbacku.
+4. temperatura i ciśnienie wybierają źródło niezależnie,
+5. etykieta zawsze brzmi `Aktualnie`; gwiazdka jest przy konkretnej wartości
+   fallbackowej, np. `18.6°C*` lub `1022 hPa*`.
 
 Firmware nie zależy od fizycznego źródła tej temperatury w HA. Dla panelu
 istotna jest wyłącznie logiczna encja `sensor.temperatura_zewnetrzna`.

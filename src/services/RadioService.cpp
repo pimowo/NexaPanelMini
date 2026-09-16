@@ -1,5 +1,7 @@
 #include "services/RadioService.h"
 #include <ArduinoJson.h>
+#include <errno.h>
+#include <limits.h>
 #include <ESP8266WiFi.h>
 #include "config.h"
 
@@ -19,8 +21,10 @@ bool readInt(JsonVariantConst value, int& result) {
     const char* text = value.as<const char*>();
     if (!text || !text[0]) return false;
     char* end = nullptr;
+    errno = 0;
     const long parsed = strtol(text, &end, 10);
-    if (end == text || *end != '\0') return false;
+    if (errno == ERANGE || parsed < INT_MIN || parsed > INT_MAX ||
+        end == text || *end != '\0') return false;
     result = static_cast<int>(parsed);
     return true;
 }
@@ -255,6 +259,7 @@ bool RadioService::processMessage(const uint8_t* payload, size_t length) {
         return false;
     }
     const JsonArrayConst entries = document["payload"].as<JsonArrayConst>();
+    if (entries.isNull() || entries.size() == 0) return false;
 
     bool changed = false;
     for (JsonObjectConst entry : entries) {

@@ -77,10 +77,12 @@ void UiManager::update(AppState& state) {
     if (navigation_->currentScreen() != ScreenId::HOME &&
         static_cast<int32_t>(now - lastTouchMs_) >=
             static_cast<int32_t>(AppConfig::UI_HOME_TIMEOUT_MS)) {
+        if (navigation_->currentScreen() == ScreenId::BOILER_TEMPERATURE) {
+            bottomBar_.invalidate();
+        }
         navigation_->goTo(ScreenId::HOME);
         heldRadioAction_ = RadioAction::NONE;
         heldBoilerTempAction_ = BoilerTemperatureAction::NONE;
-        touchDown_ = false;
         lastScreen_ = ScreenId::HOME;
         redrawPending_ = true;
     }

@@ -100,7 +100,7 @@ void BoilerService::update(AppState& state) {
     const bool wifiConnected = WiFi.status() == WL_CONNECTED;
     if (!wifiConnected) {
         if (wifiWasConnected_ || phase_ != Phase::IDLE) {
-            networkClient_.stop();
+            handleDisconnected(false);
             wifiWasConnected_ = false;
             phase_ = Phase::IDLE;
             if (state_->boilerOnline) {

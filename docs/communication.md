@@ -78,7 +78,8 @@ Oraz ciśnienie zewnętrzne HA:
 
 - `ha/shared/outside_pressure/state`.
 
-Payload jest prostą wartością liczbową w `°C` (bez JSON). To logiczna wartość
+Payload jest prostą wartością liczbową bez jednostki i bez JSON: temperatura
+w °C, ciśnienie w hPa. To logiczna wartość
 encji `sensor.temperatura_zewnetrzna`; firmware nie jest powiązany z fizycznym
 źródłem tej encji po stronie HA.
 
@@ -114,16 +115,22 @@ Połączenie MQTT ma keepalive 15 s i reconnect z backoffem od 1 s do 30 s.
 Ważność temperatury zewnętrznej HA:
 
 - brak poprawnej aktualizacji przez 15 minut oznacza `stale` i fallback do
-	Open-Meteo (`Aktualnie*`) na ekranie HOME,
+	Open-Meteo (gwiazdka przy wartości) na ekranie HOME,
 - payload `unavailable`/`unknown`/niepoprawny jest traktowany jako invalid,
 - przy rozłączeniu MQTT panel natychmiast przechodzi na fallback Open-Meteo.
 
 Ważność ciśnienia zewnętrznego HA:
 
 - brak poprawnej aktualizacji przez 15 minut oznacza `stale` i fallback do
-	Open-Meteo (`Aktualnie*`) na ekranie HOME,
+	Open-Meteo (gwiazdka przy wartości) na ekranie HOME,
 - payload `unavailable`/`unknown`/niepoprawny jest traktowany jako invalid,
 - przy rozłączeniu MQTT panel natychmiast przechodzi na fallback Open-Meteo.
+
+HA musi publikować oba topici okresowo, np. co 5 minut, także gdy wartość
+się nie zmienia, oraz przy zmianie stanu i starcie HA. Retained wiadomość
+nie zastępuje heartbeat: timeout 15 minut biegnie od ostatniej poprawnej
+wiadomości odebranej przez panel. Aktualna automatyzacja HA wymaga osobnego
+potwierdzenia; firmware nie zarządza jej konfiguracją.
 
 ## MQTT NexaPanel Mini / Home Assistant Discovery
 

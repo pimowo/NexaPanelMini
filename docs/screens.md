@@ -24,8 +24,9 @@ belki otwiera `WEATHER_DETAILS`.
 
 Znaczenie etykiety:
 
-- `Aktualnie`: zarówno temperatura, jak i ciśnienie pochodzą ze świeżego HA,
-- `Aktualnie*`: co najmniej jedna z wartości używa fallbacku Open-Meteo.
+- etykieta zawsze brzmi `Aktualnie`,
+- gwiazdka przy temperaturze lub ciśnieniu oznacza fallback tej wartości,
+- oba źródła są wybierane niezależnie; brak ciśnienia daje `--- hPa`.
 
 ## WEATHER_DETAILS
 

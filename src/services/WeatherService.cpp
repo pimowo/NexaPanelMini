@@ -10,6 +10,7 @@ const char* weekdayName(const char* isoDate) {
     int month = 0;
     int day = 0;
     if (sscanf(isoDate, "%d-%d-%d", &year, &month, &day) != 3 ||
+        year < 1970 || year > 9999 ||
         month < 1 || month > 12 || day < 1 || day > 31) {
         return "";
     }
@@ -112,7 +113,8 @@ bool WeatherService::applyResponse(Stream& stream, AppState& state) {
         const float maximum = maximums[index] | NAN;
         const float minimum = minimums[index] | NAN;
         const int code = codes[index] | -1;
-        if (strlen(isoDate) != 10 || !isfinite(maximum) ||
+        if (strlen(isoDate) != 10 || weekdayName(isoDate)[0] == '\0' ||
+            !isfinite(maximum) ||
             !isfinite(minimum) || code < 0) {
             Serial.printf("WEATHER JSON invalid day=%u\n", index);
             return false;
