@@ -12,6 +12,10 @@ Thumbs.db
 *.orig
 *.rej
 *.local
+*_build.log
+*_upload.log
+*_runtime.log
+baseline_*.log
 data/config/secrets.json
 include/secrets.h
 reference/
