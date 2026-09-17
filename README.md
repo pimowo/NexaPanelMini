@@ -184,6 +184,13 @@ pio device monitor --baud 115200
 
 W VS Code dostępne są także zadania budowania i uploadu PlatformIO.
 
+## OTA
+
+Strona `http://<IP_PANELU>/update` pozwala wybrać lokalny `firmware.bin`,
+pokazuje rzeczywisty postęp wysyłania i po poprawnej aktualizacji automatycznie
+restartuje panel. Endpoint nie ma uwierzytelniania: używaj go wyłącznie w
+zaufanej sieci LAN i nie wystawiaj do Internetu. Szczegółowa instrukcja oraz
+procedura awaryjna USB znajdują się w [docs/ota.md](docs/ota.md).
 ## Hardware / pinout
 
 Aktualne mapowanie i ostrzeżenia bootstrapów opisuje [docs/gpio.md](docs/gpio.md).

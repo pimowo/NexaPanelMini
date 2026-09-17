@@ -3,6 +3,7 @@
 #include "config.h"
 #include "pins.h"
 #include "version.h"
+#include "services/OtaService.h"
 #include "core/AppState.h"
 #include "core/Navigation.h"
 #include "display/DisplayDriver.h"
@@ -25,6 +26,7 @@ TimeService timeService;
 WeatherService weatherService;
 RadioService radioService;
 BoilerService boilerService;
+OtaService otaService;
 
 namespace {
 
@@ -59,6 +61,14 @@ void printHealthDiagnostics() {
 }
 
 }  // namespace
+
+void serviceDuringOtaUpload() {
+    timeService.update(appState);
+    radioService.update(appState);
+    boilerService.update(appState);
+    ui.update(appState);
+    printHealthDiagnostics();
+}
 
 void setup() {
     Serial.begin(115200);
@@ -97,14 +107,16 @@ void setup() {
     weatherService.begin();
     radioService.begin(appState);
     boilerService.begin(appState);
+    otaService.begin(serviceDuringOtaUpload);
 
     ui.begin(display, touch, navigation, radioService, boilerService);
 }
 
 void loop() {
     wifiService.update(appState);
+    otaService.update();
     timeService.update(appState);
-    weatherService.update(appState);
+    if (!otaService.isBusy()) weatherService.update(appState);
     radioService.update(appState);
     boilerService.update(appState);
 
