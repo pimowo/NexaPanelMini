@@ -209,8 +209,8 @@ Europe/Warsaw. Firmware nie używa RTC ani ręcznego przełączania UTC+1/UTC+2.
 
 ## Aktualny status
 
-- firmware: `1.0.0`,
-- release: `v1.0.0`,
+- firmware: `1.1.0`,
+- ostatnie wydanie: `v1.0.0`; wersja 1.1.0 oczekuje na tag/release,
 - build: SUCCESS,
 - upload: SUCCESS, 100%, Hash of data verified,
 - finalna walidacja runtime: 15 min 30 s,
