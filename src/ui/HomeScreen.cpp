@@ -126,8 +126,8 @@ void HomeScreen::drawWeatherSummary(DisplayDriver& display,
                                     const AppState& state,
                                     bool clearRegion) {
     auto& tft = display.tft();
-    if (clearRegion) tft.fillRect(0, 116 + WEATHER_BLOCK_SHIFT_Y, 240, 94,
-                                  Theme::BG);
+    if (clearRegion) tft.fillRect(0, 116, 240, 85,
+                              Theme::BG);
     if (state.weatherValid) {
         drawWeatherIcon(tft, 17, 138 + WEATHER_BLOCK_SHIFT_Y, 40,
                         state.currentWeatherCode);
